@@ -5,15 +5,59 @@ import (
 	"context"
 	"fmt"
 	"github.com/olivere/elastic/v7"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 	"sync"
 )
+
+const DriverName = "mysql"
 
 var (
 	elasticSearchOnce sync.Once
 	elasticSearchEngine *elastic.Client
 
+	mysqlOnce sync.Once
+	mysqlEngine *gorm.DB
+
+	localMySqlOnce sync.Once
+	localMySqlEngine *gorm.DB
 )
+
+func GetMySqlEngine() *gorm.DB  {
+	mysqlOnce.Do(func() {
+		var err error
+		c := conf.LocalMySqlConf
+		driveSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+			c.User, c.Password, c.Host, c.Port, c.DatabaseName)
+		localMySqlEngine, err = gorm.Open(mysql.Open(driveSource), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	})
+
+	return localMySqlEngine
+}
+
+func GetLocalMySqlEngine() *gorm.DB  {
+	mysqlOnce.Do(func() {
+		var err error
+		c := conf.LocalMySqlConf
+		driveSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+			c.User, c.Password, c.Host, c.Port, c.DatabaseName)
+		mysqlEngine, err = gorm.Open(mysql.Open(driveSource), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	})
+
+	return mysqlEngine
+}
 
 func GetElasticSearchEngine() *elastic.Client {
 	elasticSearchOnce.Do(func() {
