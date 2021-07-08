@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/guregu/null"
-	"github.com/satori/go.uuid"
 )
 
 var (
@@ -54,7 +53,7 @@ CREATE TABLE `doctors` (
 
 JSON Sample
 -------------------------------------
-{    "id": 1,    "npi": 55,    "last_name": "qEBIpBquuhbeOylUqcvwEDfqr",    "first_name": "AqTYReZgRSGBgIMTNsSiVSFPX",    "middle_name": "eiQLDSuPjaGwqjGMjyxhSIVby",    "created_at": "2226-06-01T02:13:23.626256822+08:00",    "updated_at": "2271-10-04T01:49:13.390165631+08:00",    "full_name": "xJrnIXXCeUoCufdfmkCVOrngq",    "name_prefix": "HusCkEauPqpxZIvJsmqnmHnKc",    "credential": "YhIKiqNpQCXhhQTaKBxWHNxiU",    "gender": "yTXCmIigEEvyYJuLqlvEhIvaw",    "address": "XLNdLiqTfsZRrrXjPVcLNeCxk",    "city": "iFPcnNenhEXWRvkBIoTSVMEpo",    "state": "ZOllQPLQUAkmbbTnZpdmXaijt",    "zip": "swRDytYxJJDOPEScBATJkwrYw",    "phone": "nKLoYIlQeuXQAFeuGSDnXJmGi",    "specialty": "nQpOKvPBFESUdyvExXlvrQlAc",    "sub_specialty": "fSjxTkotciDqpIBWNksGwXHLY",    "job_title": "OQAfFIqSHaFbuoUBTZbsvAjcX",    "summary": "BQCYJYoGWCOruNvMnKdckobSQ",    "fax": "FpvVYhAfrmveQPnFmdEHHKNAS",    "address_suit": "SUorpPsppAgVpPghPVblGYfsc",    "lang": "HGNLNbyXPMRLFXsptuEXQPwPQ",    "year_of_experience": "bBuPceXVJgNFqPgcujSTHsGZd"}
+{    "id": 89,    "npi": 92,    "last_name": "qcZfdxRrWjLDPOQIUKcehSdcR",    "first_name": "NGPFTVnLydBFJcaxddoNsFMCX",    "middle_name": "fIfrlbuLcNaVluQXiPryyjkOc",    "created_at": "2050-03-30T23:25:02.764492492+08:00",    "updated_at": "2111-03-26T10:35:04.25799067+08:00",    "full_name": "WClurnZwgyYVPTxCfUXCAliXN",    "name_prefix": "UCExEtaSLqRDJUtBSsayUyqPO",    "credential": "qLVVcRXOYBNohkFaoMMKQvRQh",    "gender": "EKwmiZsgHJwvbHHLOZiSUZbty",    "address": "uLBTCOCgrDCpBovxHYlTsQxUh",    "city": "UDJNlRnmTGWABnpYSeKDZegrk",    "state": "cEqgUdjUpEqVJshBRXLtdoOIn",    "zip": "mcUVjifSSlUQuMYHKPgJDwukI",    "phone": "edtXOvngBNeAyIeAjKFvPTnJO",    "specialty": "mougQqOxKymjFXQprJGmdpAKA",    "sub_specialty": "EZxOuFvDPVnRoTkUKnCaqtuUI",    "job_title": "GpyMKSJODFySLJCHRVUxqEATq",    "summary": "jArtUgbqejPyRxBtSkJBJFVKL",    "fax": "ColYfKZtTeEvVcHjDNnCRBmgJ",    "address_suit": "qIOwhyaCFmxfOZsttRQuZNyvk",    "lang": "qLAUixiSCyrApISoOEAEvLnAm",    "year_of_experience": "yAfDcyoeiLgqZaalFuFNiidAG"}
 
 
 Comments
@@ -68,53 +67,53 @@ Comments
 // Doctors struct is a row record of the doctors table in the drfinder database
 type Doctors struct {
 	//[ 0] id                                             uint                 null: false  primary: true   isArray: false  auto: true   col: uint            len: -1      default: []
-	ID uint32 `gorm:"primary_key;AUTO_INCREMENT;column:id;type:uint;" json:"id"`
+	ID uint32 `gorm:"primary_key;AUTO_INCREMENT;column:id;type:uint;"`
 	//[ 1] npi                                            int                  null: true   primary: false  isArray: false  auto: false  col: int             len: -1      default: []
-	Npi sql.NullInt64 `gorm:"column:npi;type:int;" json:"npi"`
+	Npi sql.NullInt64 `gorm:"column:npi;type:int;"`
 	//[ 2] last_name                                      varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	LastName sql.NullString `gorm:"column:last_name;type:varchar;size:50;" json:"last_name"`
+	LastName sql.NullString `gorm:"column:last_name;type:varchar;size:50;"`
 	//[ 3] first_name                                     varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	FirstName sql.NullString `gorm:"column:first_name;type:varchar;size:50;" json:"first_name"`
+	FirstName sql.NullString `gorm:"column:first_name;type:varchar;size:50;"`
 	//[ 4] middle_name                                    varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	MiddleName sql.NullString `gorm:"column:middle_name;type:varchar;size:20;" json:"middle_name"`
+	MiddleName sql.NullString `gorm:"column:middle_name;type:varchar;size:20;"`
 	//[ 5] created_at                                     datetime             null: true   primary: false  isArray: false  auto: false  col: datetime        len: -1      default: []
-	CreatedAt time.Time `gorm:"column:created_at;type:datetime;" json:"created_at"`
+	CreatedAt time.Time `gorm:"column:created_at;type:datetime;"`
 	//[ 6] updated_at                                     datetime             null: true   primary: false  isArray: false  auto: false  col: datetime        len: -1      default: []
-	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;" json:"updated_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;"`
 	//[ 7] full_name                                      varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	FullName sql.NullString `gorm:"column:full_name;type:varchar;size:255;" json:"full_name"`
+	FullName sql.NullString `gorm:"column:full_name;type:varchar;size:255;"`
 	//[ 8] name_prefix                                    varchar(10)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 10      default: []
-	NamePrefix sql.NullString `gorm:"column:name_prefix;type:varchar;size:10;" json:"name_prefix"`
+	NamePrefix sql.NullString `gorm:"column:name_prefix;type:varchar;size:10;"`
 	//[ 9] credential                                     varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	Credential sql.NullString `gorm:"column:credential;type:varchar;size:50;" json:"credential"`
+	Credential sql.NullString `gorm:"column:credential;type:varchar;size:50;"`
 	//[10] gender                                         varchar(2)           null: true   primary: false  isArray: false  auto: false  col: varchar         len: 2       default: []
-	Gender sql.NullString `gorm:"column:gender;type:varchar;size:2;" json:"gender"`
+	Gender sql.NullString `gorm:"column:gender;type:varchar;size:2;"`
 	//[11] address                                        text(65535)          null: true   primary: false  isArray: false  auto: false  col: text            len: 65535   default: []
-	Address sql.NullString `gorm:"column:address;type:text;size:65535;" json:"address"`
+	Address sql.NullString `gorm:"column:address;type:text;size:65535;"`
 	//[12] city                                           varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	City sql.NullString `gorm:"column:city;type:varchar;size:20;" json:"city"`
+	City sql.NullString `gorm:"column:city;type:varchar;size:20;"`
 	//[13] state                                          varchar(5)           null: true   primary: false  isArray: false  auto: false  col: varchar         len: 5       default: []
-	State sql.NullString `gorm:"column:state;type:varchar;size:5;" json:"state"`
+	State sql.NullString `gorm:"column:state;type:varchar;size:5;"`
 	//[14] zip                                            varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	Zip sql.NullString `gorm:"column:zip;type:varchar;size:20;" json:"zip"`
+	Zip sql.NullString `gorm:"column:zip;type:varchar;size:20;"`
 	//[15] phone                                          varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	Phone sql.NullString `gorm:"column:phone;type:varchar;size:20;" json:"phone"`
+	Phone sql.NullString `gorm:"column:phone;type:varchar;size:20;"`
 	//[16] specialty                                      varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	Specialty sql.NullString `gorm:"column:specialty;type:varchar;size:255;" json:"specialty"`
+	Specialty sql.NullString `gorm:"column:specialty;type:varchar;size:255;"`
 	//[17] sub_specialty                                  varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	SubSpecialty sql.NullString `gorm:"column:sub_specialty;type:varchar;size:255;" json:"sub_specialty"`
+	SubSpecialty sql.NullString `gorm:"column:sub_specialty;type:varchar;size:255;"`
 	//[18] job_title                                      varchar(100)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 100     default: []
-	JobTitle sql.NullString `gorm:"column:job_title;type:varchar;size:100;" json:"job_title"`
+	JobTitle sql.NullString `gorm:"column:job_title;type:varchar;size:100;"`
 	//[19] summary                                        varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	Summary sql.NullString `gorm:"column:summary;type:varchar;size:255;" json:"summary"`
+	Summary sql.NullString `gorm:"column:summary;type:varchar;size:255;"`
 	//[20] fax                                            varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	Fax sql.NullString `gorm:"column:fax;type:varchar;size:20;" json:"fax"`
+	Fax sql.NullString `gorm:"column:fax;type:varchar;size:20;"`
 	//[21] address_suit                                   varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	AddressSuit sql.NullString `gorm:"column:address_suit;type:varchar;size:20;" json:"address_suit"`
+	AddressSuit sql.NullString `gorm:"column:address_suit;type:varchar;size:20;"`
 	//[22] lang                                           varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	Lang sql.NullString `gorm:"column:lang;type:varchar;size:50;" json:"lang"`
+	Lang sql.NullString `gorm:"column:lang;type:varchar;size:50;"`
 	//[23] year_of_experience                             varchar(10)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 10      default: []
-	YearOfExperience sql.NullString `gorm:"column:year_of_experience;type:varchar;size:10;" json:"year_of_experience"`
+	YearOfExperience sql.NullString `gorm:"column:year_of_experience;type:varchar;size:10;"`
 }
 
 var doctorsTableInfo = &TableInfo{

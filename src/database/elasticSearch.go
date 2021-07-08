@@ -21,27 +21,30 @@ const (
 		},
 		"mappings":{
 			"properties": {
-			  "npi":    { "type": "long" },  
-			  "fistName":  { "type": "keyword"}, 
-			  "lastName":   { "type": "keyword"},
-			  "fullName": {"type": "keyword"},
-			  "namePrefix":  { "type": "keyword"}, 
-			  "jobTitle":   { "type": "keyword"},
-			  "gender": {"type": "keyword"},
-			  "address":  { "type": "text"}, 
-			  "state": {"type": "keyword"},
-			  "city":   { "type": "keyword"},
-			  "zip": {"type": "keyword"},
-			  "phone":  { "type": "keyword"}, 
-			  "specialty":   { "type": "keyword"},
-			  "subSpecialty": {"type": "keyword"},
-			  "yearsOfExperience":  { "type": "keyword"}, 
-			  "pin": {
-				"properties": {
-				  "location": {
-					"type": "geo_point"
-				  }
-				}
+			  "Npi":    { "type": "long" },  
+			  "FirstName":  { "type": "keyword"}, 
+			  "LastName":   { "type": "keyword"},
+			  "MiddleName": { "type": "keyword"},
+			  "FullName": {"type": "text"},
+			  "NamePrefix":  { "type": "keyword"}, 
+			  "JobTitle":   { "type": "keyword"},
+			  "Gender": {"type": "keyword"},
+			  "Address":  { "type": "text"}, 
+			  "AddressSuit": {"type": "text"},
+			  "State": {"type": "keyword"},
+			  "City":   { "type": "keyword"},
+			  "Zip": {"type": "keyword"},
+			  "Phone":  { "type": "keyword"}, 
+			  "Specialty":   { "type": "keyword"},
+			  "SubSpecialty": {"type": "text"},
+			  "YearsOfExperience":  { "type": "keyword"},
+			  "IsOnlineScheduleEnable": { "type": "boolean"},
+              "IsInClinicBookEnable": { "type": "boolean"},
+  			  "IsVirtualBookEnable": { "type": "boolean"},
+ 			  "NextAvailableDateInClinic": {"type": "date"},
+              "NextAvailableDateVirtual": {"type": "date"},
+			  "Location": {
+				"type": "geo_point"
 			  }
 			}
 		}
