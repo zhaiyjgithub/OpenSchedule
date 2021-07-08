@@ -3,7 +3,6 @@ package main
 import (
 	"OpenSchedule/src/database"
 	"context"
-	"fmt"
 	"github.com/olivere/elastic/v7"
 	"gorm.io/gorm"
 	"log"
@@ -104,23 +103,23 @@ type ESDoctor struct {
 }
 
 func main()  {
-	database.SetupElasticSearchEngine()
-	mysqlEngine = database.GetLocalMySqlEngine()
-	bulkService = database.GetElasticSearchEngine().Bulk()
-
-	const pageSize = 1000
-	page := 1
-	for {
-		doctors := getDoctor(page, pageSize)
-		bulkDoctors(doctors)
-		if len(doctors) < pageSize {
-			fmt.Println("least page: ", page)
-			break
-		}
-		fmt.Printf("page %d is finished ...\n", page)
-		page = page + 1
-		time.Sleep(time.Microsecond*500)
-	}
+	//database.SetupElasticSearchEngine()
+	//mysqlEngine = database.GetLocalMySqlEngine()
+	//bulkService = database.GetElasticSearchEngine().Bulk()
+	//
+	//const pageSize = 1000
+	//page := 1
+	//for {
+	//	doctors := getDoctor(page, pageSize)
+	//	bulkDoctors(doctors)
+	//	if len(doctors) < pageSize {
+	//		fmt.Println("least page: ", page)
+	//		break
+	//	}
+	//	fmt.Printf("page %d is finished ...\n", page)
+	//	page = page + 1
+	//	time.Sleep(time.Microsecond*500)
+	//}
 }
 
 func getDoctor(page int, pageSize int) []*Doctor  {
