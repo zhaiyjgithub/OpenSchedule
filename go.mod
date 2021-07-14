@@ -7,6 +7,7 @@ require (
 	github.com/denisenkom/go-mssqldb v0.10.0 // indirect
 	github.com/gobuffalo/logger v1.0.4 // indirect
 	github.com/iancoleman/strcase v0.1.3 // indirect
+	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210705170737-afb15b860124 // indirect
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/olivere/elastic/v7 v7.0.25
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect

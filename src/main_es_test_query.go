@@ -2,8 +2,6 @@ package main
 
 import (
 	"OpenSchedule/src/database"
-	"context"
-	"encoding/json"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -15,23 +13,24 @@ func main()  {
 	fuzzyQuery("FullName", "kim")
 }
 
-func fuzzyQuery(field string, value string)  {
+
+
+func fuzzyQuery(field string, value string) *elastic.Query {
 	q := elastic.NewFuzzyQuery(field, value).Boost(1.5).Fuzziness(2).PrefixLength(0).MaxExpansions(100)
-
-	result, err := elasticSearchEngine.Search().Index(database.DoctorIndexName).
-		Size(30).
-		From(0).
-		Query(q).Pretty(true).
-		Do(context.Background())
-
-	for _, hit := range result.Hits.Hits {
-		var postType struct{FullName string}
-		err = json.Unmarshal(hit.Source, &postType)
-
-		if err != nil {
-			break
-		}
-
-	}
-
+	//result, err := elasticSearchEngine.Search().Index(database.DoctorIndexName).
+	//	Size(30).
+	//	From(0).
+	//	Query(q).Pretty(true).
+	//	Do(context.Background())
+	//
+	//for _, hit := range result.Hits.Hits {
+	//	var postType struct{FullName string}
+	//	err = json.Unmarshal(hit.Source, &postType)
+	//
+	//	if err != nil {
+	//		break
+	//	}
+	//
+	//}
+	return q
 }
