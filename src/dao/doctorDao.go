@@ -2,12 +2,19 @@ package dao
 
 import (
 	"OpenSchedule/src/constant"
+	"encoding/json"
+	"fmt"
 	"github.com/olivere/elastic/v7"
+	"log"
 	"time"
 )
 
 type DoctorDao struct {
 	elasticSearchEngine *elastic.Client
+}
+
+func NewDoctorDao(engine *elastic.Client) *DoctorDao  {
+	return &DoctorDao{elasticSearchEngine: engine}
 }
 
 /*
@@ -38,9 +45,50 @@ func (d *DoctorDao) SearchDoctor(keyword string,
 	page int,
 	pageSize int)  {
 
-	bq := elastic.NewBoolQuery()
+	q := elastic.NewBoolQuery()
 
 	if len(keyword) > 0 {
+		fuzzyQuery := elastic.NewFuzzyQuery("FullName", keyword).Boost(1.5).Fuzziness(2).PrefixLength(0).MaxExpansions(0)
+		q.Must(fuzzyQuery)
 
+		q.Filter(elastic.NewTermQuery("IsInClinicEnable", isInClinicEnable))
+		q.Filter(elastic.NewTermQuery("IsVirtualEnable", isVirtualEnable))
+		q.Filter(elastic.NewTermQuery("AppointmentType", appointmentType))
+		q.Filter(elastic.NewTermQuery("City", city))
+		q.Filter(elastic.NewTermQuery("Specialty", specialty))
+		q.Filter(elastic.NewTermQuery("Gender", gender))
+		q.Filter(elastic.NewRangeQuery("born").
+			Gte("2012-01-01"))
+
+	}else {
+		q.Must(elastic.NewTermQuery("IsInClinicEnable", isInClinicEnable))
+		q.Must(elastic.NewTermQuery("IsVirtualEnable", isVirtualEnable))
+		q.Must(elastic.NewTermQuery("AppointmentType", appointmentType))
+		q.Must(elastic.NewTermQuery("City", city))
+		q.Must(elastic.NewTermQuery("Specialty", specialty))
+		q.Must(elastic.NewTermQuery("Gender", gender))
+		q.Filter(elastic.NewRangeQuery("born").
+			Gte("2012-01-01")).Boost(3)
 	}
+
+	distanceQuery := elastic.NewGeoDistanceQuery("Location").Lat(lat).Lon(lon).Distance("200km").DistanceType("plane")
+	q.Filter(distanceQuery)
+
+	src, err := q.Source()
+	if err != nil {
+		log.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		log.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	fmt.Println("got: ", got)
+	//sort := elastic.NewGeoDistanceSort("Location").
+	//	Point(lat, lon).
+	//	Order(true).
+	//	Unit("km").
+	//	SortMode("min").
+	//	GeoDistance("plane")
+
 }
