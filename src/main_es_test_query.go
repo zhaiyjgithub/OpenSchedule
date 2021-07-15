@@ -1,7 +1,9 @@
 package main
 
 import (
+	"OpenSchedule/src/constant"
 	"OpenSchedule/src/database"
+	"OpenSchedule/src/service"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -9,28 +11,36 @@ var elasticSearchEngine *elastic.Client
 
 func main()  {
 	database.SetupElasticSearchEngine()
-	elasticSearchEngine = database.GetElasticSearchEngine()
-	fuzzyQuery("FullName", "kim")
+
+	engine := database.GetElasticSearchEngine()
+
+	s := service.NewDoctorService()
+	keyword := "Richard"
+	isInClinicEnable := true
+	isVirtualEnable:= true
+	appointmentType:= constant.InClinic
+	nextAvailableDate:= "2021-07-05T14:36:41Z"
+	city := "Babylon"
+	specialty := ""
+	lat := 40.747898
+	lon := -73.324025
+	gender := constant.Female
+	page := 0
+	pageSize := 20
+
+	s.SearchDoctor(keyword,
+		isInClinicEnable,
+		isVirtualEnable,
+		appointmentType,
+		nextAvailableDate,
+		city,
+		specialty,
+		lat,
+		lon,
+		gender,
+		page,
+		pageSize)
+
 }
 
 
-
-func fuzzyQuery(field string, value string) *elastic.Query {
-	q := elastic.NewFuzzyQuery(field, value).Boost(1.5).Fuzziness(2).PrefixLength(0).MaxExpansions(100)
-	//result, err := elasticSearchEngine.Search().Index(database.DoctorIndexName).
-	//	Size(30).
-	//	From(0).
-	//	Query(q).Pretty(true).
-	//	Do(context.Background())
-	//
-	//for _, hit := range result.Hits.Hits {
-	//	var postType struct{FullName string}
-	//	err = json.Unmarshal(hit.Source, &postType)
-	//
-	//	if err != nil {
-	//		break
-	//	}
-	//
-	//}
-	return q
-}

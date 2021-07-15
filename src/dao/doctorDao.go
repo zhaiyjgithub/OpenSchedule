@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/olivere/elastic/v7"
 	"log"
-	"time"
 )
 
 type DoctorDao struct {
@@ -36,7 +35,7 @@ func (d *DoctorDao) SearchDoctor(keyword string,
 	isInClinicEnable bool,
 	isVirtualEnable bool,
 	appointmentType constant.AppointmentType,
-	nextAvailableDate time.Time,
+	nextAvailableDate string,
 	city string,
 	specialty string,
 	lat float64,
@@ -53,17 +52,26 @@ func (d *DoctorDao) SearchDoctor(keyword string,
 
 		q.Filter(elastic.NewTermQuery("IsInClinicEnable", isInClinicEnable))
 		q.Filter(elastic.NewTermQuery("IsVirtualEnable", isVirtualEnable))
-		q.Filter(elastic.NewTermQuery("AppointmentType", appointmentType))
-		q.Filter(elastic.NewTermQuery("City", city))
-		q.Filter(elastic.NewTermQuery("Specialty", specialty))
-		q.Filter(elastic.NewTermQuery("Gender", gender))
-		q.Filter(elastic.NewRangeQuery("born").
-			Gte("2012-01-01"))
 
+		if len(city) > 0 {
+			q.Filter(elastic.NewTermQuery("City", city))
+		}
+		if len(specialty) > 0 {
+			q.Filter(elastic.NewTermQuery("Specialty", specialty))
+		}
+		q.Filter(elastic.NewTermQuery("Gender", gender))
+		if len(nextAvailableDate) > 0 {
+			if appointmentType == constant.InClinic {
+				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+					Gte(nextAvailableDate))
+			}else {
+				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+					Gte(nextAvailableDate))
+			}
+		}
 	}else {
 		q.Must(elastic.NewTermQuery("IsInClinicEnable", isInClinicEnable))
 		q.Must(elastic.NewTermQuery("IsVirtualEnable", isVirtualEnable))
-		q.Must(elastic.NewTermQuery("AppointmentType", appointmentType))
 		q.Must(elastic.NewTermQuery("City", city))
 		q.Must(elastic.NewTermQuery("Specialty", specialty))
 		q.Must(elastic.NewTermQuery("Gender", gender))
@@ -84,11 +92,11 @@ func (d *DoctorDao) SearchDoctor(keyword string,
 	}
 	got := string(data)
 	fmt.Println("got: ", got)
-	//sort := elastic.NewGeoDistanceSort("Location").
-	//	Point(lat, lon).
-	//	Order(true).
-	//	Unit("km").
-	//	SortMode("min").
-	//	GeoDistance("plane")
+	sort := elastic.NewGeoDistanceSort("Location").
+		Point(lat, lon).
+		Order(true).
+		Unit("km").
+		GeoDistance("plane")
+
 
 }
