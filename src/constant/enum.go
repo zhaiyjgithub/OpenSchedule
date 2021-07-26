@@ -13,3 +13,10 @@ const (
 	Female Gender = "F"
 	Male Gender = "M"
 )
+
+type SortType int
+
+const  (
+	ByDefault SortType = 0
+	ByDistance SortType = 1
+)

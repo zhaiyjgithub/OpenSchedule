@@ -1,0 +1,27 @@
+version: '3.3'
+
+services:
+  mysql:
+    image: library/mysql:5.7
+    container_name: mysql5.7
+    volumes:
+      - ./mysql/data:/var/lib/mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: Yj202!0701
+      MYSQL_DATABASE: openSchedule
+      MYSQL_USER: gust
+      MYSQL_PASSWORD: Yj202!0701
+    ports:
+      - "3306:3306"
+    restart: always
+
+  web:
+    build:
+      context: .
+    image: anyHealthApp:1.0
+    container_name: anyHealthApp
+    ports:
+      - "8090:8090"
+    depends_on:
+      - mysql
+    restart: always

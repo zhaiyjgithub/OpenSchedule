@@ -56,7 +56,7 @@ Comments
 // Doctors struct is a row record of the doctors table in the drfinder database
 type Doctor struct {
 	//[ 0] id                                             uint                 null: false  primary: true   isArray: false  auto: true   col: uint            len: -1      default: []
-	ID uint32 `gorm:"primary_key;AUTO_INCREMENT;column:id;type:uint;"`
+	ID uint32 `gorm:"primary_key;AUTO_INCREMENT;column:id;type:uint;"json:"-"`
 	//[ 1] npi                                            int                  null: true   primary: false  isArray: false  auto: false  col: int             len: -1      default: []
 	Npi int64 `gorm:"column:npi;type:int;"`
 	//[ 2] last_name                                      varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
@@ -66,9 +66,9 @@ type Doctor struct {
 	//[ 4] middle_name                                    varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
 	MiddleName string `gorm:"column:middle_name;type:varchar;size:20;"`
 	//[ 5] created_at                                     datetime             null: true   primary: false  isArray: false  auto: false  col: datetime        len: -1      default: []
-	CreatedAt time.Time `gorm:"column:created_at;type:datetime;"`
+	CreatedAt time.Time `gorm:"column:created_at;type:datetime;"json:"-"`
 	//[ 6] updated_at                                     datetime             null: true   primary: false  isArray: false  auto: false  col: datetime        len: -1      default: []
-	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;"`
+	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;"json:"-"`
 	//[ 7] full_name                                      varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
 	FullName string `gorm:"column:full_name;type:varchar;size:255;"`
 	//[ 8] name_prefix                                    varchar(10)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 10      default: []

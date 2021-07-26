@@ -4,6 +4,7 @@ import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/dao"
 	"OpenSchedule/src/database"
+	"OpenSchedule/src/model/viewModel"
 )
 
 type DoctorService interface {
@@ -18,7 +19,8 @@ type DoctorService interface {
 		lon float64,
 		gender constant.Gender,
 		page int,
-		pageSize int)
+		pageSize int,
+		sortType constant.SortType, distance int) []*viewModel.DoctorInfo
 }
 
 type newDoctorService struct {
@@ -40,8 +42,8 @@ func (s *newDoctorService) SearchDoctor(keyword string,
 	lon float64,
 	gender constant.Gender,
 	page int,
-	pageSize int)  {
-	s.dao.SearchDoctor(keyword,
+	pageSize int, sortType constant.SortType, distance int) []*viewModel.DoctorInfo {
+	return s.dao.SearchDoctor(keyword,
 		isInClinicEnable,
 		isVirtualEnable,
 		appointmentType,
@@ -52,5 +54,5 @@ func (s *newDoctorService) SearchDoctor(keyword string,
 		lon,
 		gender,
 		page,
-		pageSize)
+		pageSize, sortType, distance)
 }

@@ -15,18 +15,20 @@ Open API
 
 |Name|Required|Type|description|
 |:----    |:---|:----- |-----   |
-|keyword |yes  |string |   |
-|isInClinicEnable |no  |bool |  default true  | 
-|isVirtualEnable     |no  |bool |    |
-|appointmentType | yes | int | all = 0 inClinic=1 virtual = 2
-|nextAvailableDate |no |date | UTC format
-|city |no |string |
-|specialty |no | string |  
-|lat | yes | float | 
-|lon |yes | float |
-|gender |no | bool|
-|page |yes | int| default index from 1
-|pageSize |yes | int | default size from 50
+|Keyword |yes  |string |   |
+|IsInClinicEnable |no  |bool |  default true  | 
+|IsVirtualEnable     |no  |bool |    |
+|AppointmentType | yes | int | all = 0 inClinic=1 virtual = 2
+|NextAvailableDate |no |date | UTC format
+|City |no |string |
+|Specialty |no | string |  
+|Lat | yes | float | 
+|Lon |yes | float |
+|Gender |no | bool|
+|Page |yes | int| default index from 1
+|PageSize |yes | int | default size from 50
+|Distance |no | int | default 200
+|SortType |no | int | byDefault = 0, ByDistance = 1
 
 
 ##### Response sample

@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/Joker/hpp v1.0.0 // indirect
+	github.com/go-playground/validator/v10 v10.8.0
 	github.com/google/uuid v1.2.0
 	github.com/guregu/null v4.0.0+incompatible
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
