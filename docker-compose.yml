@@ -3,7 +3,7 @@ version: '3.3'
 services:
   mysql:
     image: library/mysql:5.7
-    container_name: mysql5.7
+    container_name: mysql5.7-1.0.1
     volumes:
       - ./mysql/data:/var/lib/mysql/
     environment:
@@ -18,7 +18,7 @@ services:
   web:
     build:
       context: .
-    image: anyHealthApp:1.0
+    image: anyHealthApp:1.0.1
     container_name: anyHealthApp
     ports:
       - "8090:8090"

@@ -1,6 +1,9 @@
 package router
+const (
+	AnyHealthService = "/AnyHealth"
+)
 
 const (
-	Doctor = "/Doctor"
+	Doctor = AnyHealthService + "/Doctor"
 	SearchDoctor = "/SearchDoctor"
 )

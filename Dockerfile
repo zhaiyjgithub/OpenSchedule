@@ -16,6 +16,6 @@ COPY anyHealthApp .
 
 RUN  chmod +x anyHealthApp
 
-EXPOSE 8888
+EXPOSE 8090
 
 CMD ["/app/anyHealthApp"]

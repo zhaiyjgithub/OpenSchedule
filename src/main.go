@@ -14,13 +14,18 @@ import (
 
 
 func main()  {
-	fmt.Println("Hell, AnyHealth")
+	fmt.Println("Version: 1.0")
+	fmt.Println("Hell, AnyHealth.")
 	database.SetupElasticSearchEngine()
 
 	app := iris.New()
 	mvc.Configure(app.Party(router.Doctor), configureDoctorMVC)
 	_ = app.Run(iris.Addr(":8090"), iris.WithPostMaxMemory(32<<20)) //max = 32M
 
+}
+
+func configureAnyHealthService(app *iris.Application)  {
+	mvc.Configure(app.Party(router.Doctor), configureDoctorMVC)
 }
 
 func configureDoctorMVC(app *mvc.Application)  {

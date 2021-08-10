@@ -194,16 +194,3 @@ func (d *DoctorDao)searchByDefault(lat float64, lon float64, q elastic.Query, pa
 	}
 	return docs
 }
-
-//func sourceSQL(src, err)  {
-//	src, err := builder.Source()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	data, err := json.Marshal(src)
-//	if err != nil {
-//		log.Fatalf("marshaling to JSON failed: %v", err)
-//	}
-//	got := string(data)
-//	fmt.Println("got elastic search sql: ", got)
-//}
