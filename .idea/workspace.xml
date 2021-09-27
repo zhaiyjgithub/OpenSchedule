@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ae63ba2e-09f0-46b6-85fc-a14cc8771fd5" name="Changes" comment="" />
+    <list default="true" id="ae63ba2e-09f0-46b6-85fc-a14cc8771fd5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/documents/database/schema_script.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/documents/api.md" beforeDir="false" afterPath="$PROJECT_DIR$/documents/api.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,8 +39,10 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DatabaseDriversLRU" value="mysql" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.formatter.settings.were.checked" value="true" />
     <property name="go.import.settings.migrated" value="true" />
@@ -70,7 +77,9 @@
       <updated>1632375837134</updated>
       <workItem from="1632375840677" duration="1082000" />
       <workItem from="1632627875103" duration="1857000" />
-      <workItem from="1632636774148" duration="940000" />
+      <workItem from="1632636774148" duration="1615000" />
+      <workItem from="1632641908483" duration="3883000" />
+      <workItem from="1632727364211" duration="2534000" />
     </task>
     <servers />
   </component>
