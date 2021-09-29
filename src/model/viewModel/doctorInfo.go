@@ -1,7 +1,7 @@
 package viewModel
 
 import (
-	"OpenSchedule/src/model"
+	"OpenSchedule/src/model/doctor"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -10,7 +10,7 @@ type Location struct {
 	Lng float64
 }
 type DoctorInfo struct {
-	model.Doctor
+	doctor.Doctor
 	Location elastic.GeoPoint
 	Distance float64
 }

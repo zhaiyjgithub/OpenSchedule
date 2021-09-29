@@ -19,7 +19,7 @@ func main()  {
 	database.SetupElasticSearchEngine()
 
 	app := iris.New()
-	mvc.Configure(app.Party(router.Doctor), configureDoctorMVC)
+	configureAnyHealthService(app)
 	_ = app.Run(iris.Addr(":8090"), iris.WithPostMaxMemory(32<<20)) //max = 32M
 
 }

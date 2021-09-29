@@ -1,4 +1,4 @@
-package model
+package doctor
 
 import (
 	"time"
