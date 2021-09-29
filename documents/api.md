@@ -86,7 +86,7 @@ Open API
 - get the settings of schedule
 
 ##### 请求URL
-- ` http://xx.com/api/schedule/getSettings `
+- ` http://xx.com/api/schedule/getScheduleSettings `
   
 ##### 请求方式
 - POST 

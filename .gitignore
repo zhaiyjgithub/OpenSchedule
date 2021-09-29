@@ -16,3 +16,4 @@
 
 ./generateModel/*
 .idea
+gen.sh
