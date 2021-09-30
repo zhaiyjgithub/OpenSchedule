@@ -12,7 +12,6 @@ import (
 	"github.com/kataras/iris/v12/mvc"
 )
 
-
 func main()  {
 	fmt.Println("Version: 1.0")
 	fmt.Println("Hell, AnyHealth.")
@@ -26,10 +25,15 @@ func main()  {
 
 func configureAnyHealthService(app *iris.Application)  {
 	mvc.Configure(app.Party(router.Doctor), configureDoctorMVC)
+	mvc.Configure(app.Party(router.ScheduleSettings), configureScheduleSettingsMVC)
 }
 
 func configureDoctorMVC(app *mvc.Application)  {
 	doctorService := service.NewDoctorService()
 	app.Register(doctorService)
 	app.Handle(new(doctor.FindDoctorController))
+}
+
+func configureScheduleSettingsMVC(app *mvc.Application)  {
+	app.Handle(new(doctor.ScheduleController))
 }
