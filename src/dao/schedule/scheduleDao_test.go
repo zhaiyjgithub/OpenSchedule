@@ -11,7 +11,7 @@ func TestDao_SetScheduleSettings(t *testing.T) {
 	settings.Npi = 5
 	settings.NumberPerSlot = 5
 
-	dao := NewScheduleDao(database.GetMySqlEngine())
+	dao := NewDao(database.GetMySqlEngine())
 	err := dao.SetScheduleSettings(settings)
 	if err != nil {
 		t.Errorf("test failed")

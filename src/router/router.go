@@ -9,6 +9,6 @@ const (
 )
 
 const (
-	ScheduleSettings = AnyHealthService + "/schedule"
+	ScheduleSettings = AnyHealthService + "/Schedule"
 	SetScheduleSettings = "/SetScheduleSettings"
 )

@@ -7,6 +7,7 @@ import (
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/router"
 	"OpenSchedule/src/service"
+	"OpenSchedule/src/service/schedule"
 	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -14,7 +15,7 @@ import (
 
 func main()  {
 	fmt.Println("Version: 1.0")
-	fmt.Println("Hell, AnyHealth.")
+	fmt.Println("Hello, AnyHealth.")
 	database.SetupElasticSearchEngine()
 
 	app := iris.New()
@@ -35,5 +36,7 @@ func configureDoctorMVC(app *mvc.Application)  {
 }
 
 func configureScheduleSettingsMVC(app *mvc.Application)  {
+	scheduleService := schedule.NewService()
+	app.Register(scheduleService)
 	app.Handle(new(doctor.ScheduleController))
 }

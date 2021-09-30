@@ -4,6 +4,7 @@ import (
 	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/response"
 	"OpenSchedule/src/router"
+	"OpenSchedule/src/service/schedule"
 	"OpenSchedule/src/utils"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -11,7 +12,7 @@ import (
 
 type ScheduleController struct {
 	Ctx iris.Context
-	
+	ScheduleService schedule.Service
 }
 
 func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation)  {
@@ -23,6 +24,11 @@ func (c *ScheduleController) SetScheduleSettings()  {
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
+	err := c.ScheduleService.SetScheduleSettings(&p)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(),nil)
+	}else {
+		response.Success(c.Ctx, response.Successful, nil)
+	}
 
-	response.Success(c.Ctx, response.Successful, nil)
 }

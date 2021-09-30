@@ -9,7 +9,7 @@ type Dao struct {
 	engine *gorm.DB
 }
 
-func NewScheduleDao(engine *gorm.DB) *Dao {
+func NewDao(engine *gorm.DB) *Dao {
 	return &Dao{engine: engine}
 }
 
@@ -25,4 +25,13 @@ func (d *Dao) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
 			Select("*").Omit("created_at").Updates(setting)
 		return db.Error
 	}
+}
+
+func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
+	st := &doctor.ScheduleSettings{}
+	db := d.engine.Where("npi = ?", npi).First(st)
+	if db.Error != nil {
+		return st
+	}
+	return nil
 }
