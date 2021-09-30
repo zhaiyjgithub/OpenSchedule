@@ -28,7 +28,7 @@ var (
 func GetMySqlEngine() *gorm.DB  {
 	mysqlOnce.Do(func() {
 		var err error
-		c := conf.LocalMySqlConf
+		c := conf.MySQLConf
 		driveSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
 			c.User, c.Password, c.Host, c.Port, c.DatabaseName)
 		localMySqlEngine, err = gorm.Open(mysql.Open(driveSource), &gorm.Config{
@@ -40,23 +40,6 @@ func GetMySqlEngine() *gorm.DB  {
 	})
 
 	return localMySqlEngine
-}
-
-func GetLocalMySqlEngine() *gorm.DB  {
-	mysqlOnce.Do(func() {
-		var err error
-		c := conf.LocalMySqlConf
-		driveSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
-			c.User, c.Password, c.Host, c.Port, c.DatabaseName)
-		mysqlEngine, err = gorm.Open(mysql.Open(driveSource), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-	})
-
-	return mysqlEngine
 }
 
 func GetElasticSearchEngine() *elastic.Client {
