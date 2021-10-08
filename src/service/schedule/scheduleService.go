@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	SetScheduleSettings (settings *doctor.ScheduleSettings) error
+	GetScheduleSettings(npi int64) *doctor.ScheduleSettings
 }
 
 func NewService() Service {
@@ -20,4 +21,8 @@ type service struct {
 
 func (s *service) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
 	return s.dao.SetScheduleSettings(setting)
+}
+
+func (s *service) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
+	return s.dao.GetScheduleSettings(npi)
 }

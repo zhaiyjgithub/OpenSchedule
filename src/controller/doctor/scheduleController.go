@@ -17,6 +17,7 @@ type ScheduleController struct {
 
 func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(iris.MethodPost, router.SetScheduleSettings, "SetScheduleSettings")
+	b.Handle(iris.MethodPost, router.GetScheduleSettings, "GetScheduleSettings")
 }
 
 func (c *ScheduleController) SetScheduleSettings()  {
@@ -30,5 +31,16 @@ func (c *ScheduleController) SetScheduleSettings()  {
 	}else {
 		response.Success(c.Ctx, response.Successful, nil)
 	}
+}
 
+func (c *ScheduleController) GetScheduleSettings()  {
+	type Param struct {
+		Npi int64 `json:"npi" validate:"gt=0"`
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	settings := c.ScheduleService.GetScheduleSettings(p.Npi)
+	response.Success(c.Ctx, response.Successful, settings)
 }

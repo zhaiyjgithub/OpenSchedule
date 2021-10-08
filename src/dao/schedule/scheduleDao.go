@@ -31,7 +31,7 @@ func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 	st := &doctor.ScheduleSettings{}
 	db := d.engine.Where("npi = ?", npi).First(st)
 	if db.Error != nil {
-		return st
+		return nil
 	}
-	return nil
+	return st
 }
