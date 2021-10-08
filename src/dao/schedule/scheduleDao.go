@@ -64,11 +64,11 @@ func (d *Dao) CalcNextAvailableDate(t time.Time, settings *doctor.ScheduleSettin
 func (d *Dao) CalcNextAvailableDateForEachWeekDay(t time.Time,
 	weekDayAMStartTime string, weekDayAMEndTime string, weekDayPMStartTime string, weekDayPMEndTime string,
 	durationOfSlot int, numberOfSlot int) (bool, string) {
-	AMStartTime, err := d.ParseScheduleTimeToUTC(weekDayAMStartTime)
-	AMEndTime, err := d.ParseScheduleTimeToUTC(weekDayAMEndTime)
+	AMStartTime, err := d.ParseScheduleTimeToUTC(weekDayAMStartTime, true)
+	AMEndTime, err := d.ParseScheduleTimeToUTC(weekDayAMEndTime, true)
 
-	PMStartTime, err := d.ParseScheduleTimeToUTC(weekDayPMStartTime)
-	PMEndTime, err := d.ParseScheduleTimeToUTC(weekDayPMEndTime)
+	PMStartTime, err := d.ParseScheduleTimeToUTC(weekDayPMStartTime, false)
+	PMEndTime, err := d.ParseScheduleTimeToUTC(weekDayPMEndTime, false)
 	if err != nil {
 		return false, ""
 	}
@@ -84,15 +84,21 @@ func (d *Dao) CalcNextAvailableDateForEachWeekDay(t time.Time,
 	return false, ""
 }
 
-func (d *Dao) CalcNextAvailableDateForTimeRange(t time.Time, startTime time.Time, durationOfSlot int) string {
-	availableTimeRangeMinutes := t.Sub(startTime).Minutes()
+func (d *Dao) CalcNextAvailableDateForTimeRange(now time.Time, startTime time.Time, durationOfSlot int) string {
+	if now.Before(startTime) {
+		return startTime.Format(time.RFC3339)
+	}
+	availableTimeRangeMinutes := now.Sub(startTime).Minutes()
 	slotTimeNumber := int(availableTimeRangeMinutes) / durationOfSlot
+	if int(availableTimeRangeMinutes) % durationOfSlot > 0 {
+		slotTimeNumber += 1
+	}
 	slotTime := slotTimeNumber*durationOfSlot
 	nextAvailableDateTime := startTime.Add(time.Duration(slotTime)*time.Minute).Format(time.RFC3339)
 	return nextAvailableDateTime
 }
 
-func (d *Dao)ParseScheduleTimeToUTC(scheduleTime string) (time.Time, error) {
+func (d *Dao)ParseScheduleTimeToUTC(scheduleTime string, isAM bool) (time.Time, error) {
 	if !utils.CheckDateTime(scheduleTime) {
 		return time.Now().UTC(), errors.New("param error")
 	}
@@ -105,6 +111,9 @@ func (d *Dao)ParseScheduleTimeToUTC(scheduleTime string) (time.Time, error) {
 	dateTime := strings.Split(scheduleTime, ":")
 	hour, _ := strconv.Atoi(dateTime[0])
 	min, _ := strconv.Atoi(dateTime[1])
+	if !isAM {
+		hour += 12
+	}
 	utcTime := time.Date(year, month, day, hour, min, 0, 0, time.UTC)
 	return utcTime, nil
 }
