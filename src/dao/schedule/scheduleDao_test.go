@@ -38,3 +38,22 @@ func TestDao_CalcNextAvailableDateForTimeRange(t *testing.T) {
 	fmt.Println(nextAvailableDate)
 }
 
+func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
+	currentTime := time.Date(2021, 10, 10, 8, 50, 0, 0, time.UTC)
+	isOk, nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, "09:00",
+			"12:00", "01:00", "06:00", 15, 1)
+	if isOk != true {
+		t.Errorf("calc failed")
+	}
+	fmt.Println(nextAvailableDate)
+}
+
+func TestDao_CalcNextAvailableDate(t *testing.T) {
+	currentTime := time.Date(2021, 10, 9, 13, 50, 0, 0, time.UTC)
+	st := dao.GetScheduleSettings(3)
+	isOk, nextAvailableDate := dao.CalcNextAvailableDate(currentTime, st)
+	if isOk != true {
+		t.Errorf("calc failed")
+	}
+	fmt.Println(nextAvailableDate)
+}

@@ -4,6 +4,7 @@ import (
 	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/utils"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
@@ -12,6 +13,19 @@ import (
 
 type Dao struct {
 	engine *gorm.DB
+}
+
+type WeekSchedule struct {
+	AmIsEnable bool
+	AmStartTime string
+	AmEndTime string
+
+	PmIsEnable bool
+	PmStartTime string
+	PmEndTime string
+
+	DurationPerSlot	int
+	NumberPerSlot	int
 }
 
 func NewDao(engine *gorm.DB) *Dao {
@@ -51,14 +65,137 @@ func (d *Dao) CalcNextAvailableDate(t time.Time, settings *doctor.ScheduleSettin
 	number := settings.NumberPerSlot
 	isOk := false
 	nextAvailableDate := ""
+	weekDayLine := []time.Weekday{time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday, time.Saturday,
+		time.Sunday, time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday,
+		}
+	weekSchedules := d.GetWeekSchedule(settings)
+	i := int(weekDay)
+	length := int(weekDay) + 7
+	for ; i < length; i ++ {
+		wl := weekDayLine[i]
+		ws := weekSchedules[wl]
+		if ws.AmIsEnable || ws.PmIsEnable {
+			startTime := ""
+			endTime := ""
+			if ws.AmIsEnable && ws.PmIsEnable {
+				startTime = ws.AmStartTime
+				endTime = ws.PmEndTime
+			}else if !ws.AmIsEnable && ws.PmIsEnable {
+				startTime = ws.PmStartTime
+				endTime = ws.PmEndTime
+			}else {
+				startTime = ws.AmStartTime
+				endTime = ws.AmEndTime
+			}
+			isContain := d.ContainTimeInRange(t, startTime, endTime, ws.AmIsEnable, ws.PmIsEnable)
+			if isContain {
+				break
+			}
+		}
+	}
+
+	if i == length {
+		fmt.Println("currently unavailable")
+	}
+
+
 	if weekDay == time.Sunday {
 		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.SundayAmStartTime, settings.SundayAmEndTime,
 			settings.SundayPmStartTime, settings.SundayPmEndTime,duration, number)
+	}else if weekDay == time.Monday {
+		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.MondayAmStartTime, settings.MondayAmEndTime,
+			settings.MondayPmStartTime, settings.MondayPmEndTime,duration, number)
+	}else if weekDay == time.Tuesday {
+		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.TuesdayAmStartTime, settings.TuesdayAmEndTime,
+			settings.TuesdayPmStartTime, settings.TuesdayPmEndTime,duration, number)
+	}else if weekDay == time.Wednesday {
+		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.WednesdayAmStartTime, settings.WednesdayAmEndTime,
+			settings.WednesdayPmStartTime, settings.WednesdayPmEndTime,duration, number)
+	}else if weekDay == time.Thursday {
+		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.ThursdayAmStartTime, settings.ThursdayAmEndTime,
+			settings.ThursdayPmStartTime, settings.ThursdayPmEndTime,duration, number)
 	}else if weekDay == time.Friday {
 		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.FridayAmStartTime, settings.FridayAmEndTime,
 			settings.FridayPmStartTime, settings.FridayPmEndTime,duration, number)
+	}else if weekDay == time.Saturday {
+		isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(t, settings.SaturdayAmStartTime, settings.SaturdayAmEndTime,
+			settings.SaturdayPmStartTime, settings.SaturdayPmEndTime,duration, number)
 	}
 	return isOk, nextAvailableDate
+}
+
+func (d *Dao) ContainTimeInRange(t time.Time, startTime string, endTime string, isAmEnable bool, isPmEnable bool) bool  {
+	startTimeUTC, _ := d.ParseScheduleTimeToUTC(t, startTime, isAmEnable)
+	endTimeUTC, _ := d.ParseScheduleTimeToUTC(t, endTime, !isPmEnable)
+	return t.After(startTimeUTC) && t.Before(endTimeUTC)
+}
+
+func (d *Dao) GetWeekSchedule(settings *doctor.ScheduleSettings) map[time.Weekday]WeekSchedule {
+	weekSchedules := make(map[time.Weekday]WeekSchedule)
+	weekSchedules[time.Sunday] = WeekSchedule{
+		AmIsEnable: settings.SundayAmIsEnable,
+		AmStartTime: settings.SundayAmStartTime,
+		AmEndTime: settings.SundayAmEndTime,
+
+		PmIsEnable: settings.SundayPmIsEnable,
+		PmStartTime: settings.SundayPmStartTime,
+		PmEndTime: settings.SundayAmEndTime,
+	}
+	weekSchedules[time.Monday] = WeekSchedule{
+		AmIsEnable: settings.MondayAmIsEnable,
+		AmStartTime: settings.MondayAmStartTime,
+		AmEndTime: settings.MondayAmEndTime,
+
+		PmIsEnable: settings.MondayPmIsEnable,
+		PmStartTime: settings.MondayPmStartTime,
+		PmEndTime: settings.MondayAmEndTime,
+	}
+	weekSchedules[time.Tuesday] = WeekSchedule{
+		AmIsEnable: settings.TuesdayAmIsEnable,
+		AmStartTime: settings.TuesdayAmStartTime,
+		AmEndTime: settings.TuesdayAmEndTime,
+
+		PmIsEnable: settings.TuesdayPmIsEnable,
+		PmStartTime: settings.TuesdayPmStartTime,
+		PmEndTime: settings.TuesdayAmEndTime,
+	}
+	weekSchedules[time.Wednesday] = WeekSchedule{
+		AmIsEnable: settings.WednesdayAmIsEnable,
+		AmStartTime: settings.WednesdayAmStartTime,
+		AmEndTime: settings.WednesdayAmEndTime,
+
+		PmIsEnable: settings.WednesdayPmIsEnable,
+		PmStartTime: settings.WednesdayPmStartTime,
+		PmEndTime: settings.WednesdayAmEndTime,
+	}
+	weekSchedules[time.Thursday] = WeekSchedule{
+		AmIsEnable: settings.ThursdayAmIsEnable,
+		AmStartTime: settings.ThursdayAmStartTime,
+		AmEndTime: settings.ThursdayAmEndTime,
+
+		PmIsEnable: settings.ThursdayPmIsEnable,
+		PmStartTime: settings.ThursdayPmStartTime,
+		PmEndTime: settings.ThursdayAmEndTime,
+	}
+	weekSchedules[time.Friday] = WeekSchedule{
+		AmIsEnable: settings.FridayAmIsEnable,
+		AmStartTime: settings.FridayAmStartTime,
+		AmEndTime: settings.FridayAmEndTime,
+
+		PmIsEnable: settings.FridayPmIsEnable,
+		PmStartTime: settings.FridayPmStartTime,
+		PmEndTime: settings.FridayAmEndTime,
+	}
+	weekSchedules[time.Saturday] = WeekSchedule{
+		AmIsEnable: settings.SaturdayAmIsEnable,
+		AmStartTime: settings.SaturdayAmStartTime,
+		AmEndTime: settings.SaturdayAmEndTime,
+
+		PmIsEnable: settings.SaturdayPmIsEnable,
+		PmStartTime: settings.SaturdayPmStartTime,
+		PmEndTime: settings.SaturdayAmEndTime,
+	}
+	return weekSchedules
 }
 
 func (d *Dao) CalcNextAvailableDateForEachWeekDay(t time.Time,
@@ -77,7 +214,7 @@ func (d *Dao) CalcNextAvailableDateForEachWeekDay(t time.Time,
 	}else if t.After(AMStartTime) && t.Before(AMEndTime) {
 		nextAvailableDateTime := d.CalcNextAvailableDateForTimeRange(t, AMStartTime, durationOfSlot)
 		return true, nextAvailableDateTime
-	}else if t.After(PMStartTime) && t.Before(PMEndTime) {
+	} else if t.After(AMEndTime) && t.Before(PMEndTime) {
 		nextAvailableDateTime := d.CalcNextAvailableDateForTimeRange(t, PMStartTime, durationOfSlot)
 		return true, nextAvailableDateTime
 	}
@@ -98,12 +235,10 @@ func (d *Dao) CalcNextAvailableDateForTimeRange(now time.Time, startTime time.Ti
 	return nextAvailableDateTime
 }
 
-func (d *Dao)ParseScheduleTimeToUTC(scheduleTime string, isAM bool) (time.Time, error) {
+func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool) (time.Time, error) {
 	if !utils.CheckDateTime(scheduleTime) {
 		return time.Now().UTC(), errors.New("param error")
 	}
-
-	t := time.Now().UTC()
 	year := t.Year()
 	month := t.Month()
 	day := t.Day()
