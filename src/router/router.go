@@ -11,4 +11,5 @@ const (
 const (
 	ScheduleSettings = AnyHealthService + "/Schedule"
 	SetScheduleSettings = "/SetScheduleSettings"
+	GetScheduleSettings = "/GetScheduleSettings"
 )

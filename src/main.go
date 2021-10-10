@@ -14,7 +14,6 @@ import (
 )
 
 func main()  {
-	fmt.Println("Version: 1.0")
 	fmt.Println("Hello, AnyHealth.")
 	database.SetupElasticSearchEngine()
 
