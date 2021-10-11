@@ -49,12 +49,14 @@ func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 
 func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64, nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
 	esId := d.GetDoctorInfoFromES(npi)
-	lines, err := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).ReturnSource(true).Doc(struct {
+	req := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
 		NextAvailableDateInClinic string
+		NextAvailableDateVirtual string
 	}{
 		NextAvailableDateInClinic: nextAvailableDateInClinic,
-	}).Source()
-	fmt.Println(lines)
+		NextAvailableDateVirtual: nextAvailableDateVirtual,
+	})
+	_, err := d.elasticSearchEngine.Bulk().Add(req).Do(context.TODO())
 	return err
 }
 
