@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"OpenSchedule/src/constant"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
 	"fmt"
@@ -40,10 +41,10 @@ func TestDao_CalcNextAvailableDateForTimeRange(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
-	currentTime := time.Date(2021, 10, 10, 20, 50, 0, 0, time.UTC)
-	nextTime := currentTime.Add(time.Hour*24*time.Duration(1))
-	isOk, nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, nextTime, false, "09:00",
-			"12:00", true,"01:00", "06:00", 15, 1)
+	currentTime := time.Date(2021, 10, 11, 9, 50, 0, 0, time.UTC)
+	nextTime := currentTime.Add(time.Hour*24*time.Duration(0))
+	isOk, nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, constant.Virtual, nextTime, constant.InClinic, true, "09:00",
+			"12:00", constant.Virtual, true,"01:00", "06:00", 15, 1)
 	if isOk != true {
 		t.Errorf("calc failed")
 	}
@@ -51,11 +52,13 @@ func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDate(t *testing.T) {
-	currentTime := time.Date(2021, 10, 10, 14, 36, 0, 0, time.UTC)
+	currentTime := time.Date(2021, 10, 11, 9, 36, 0, 0, time.UTC)
 	st := dao.GetScheduleSettings(3)
-	st.MondayAmIsEnable = false
-	st.MondayPmIsEnable = false
-	isOk, nextAvailableDate := dao.CalcNextAvailableDate(currentTime, st)
+	st.MondayAmIsEnable = true
+	st.MondayPmIsEnable = true
+	st.MondayAmAppointmentType = constant.InClinic
+	st.MondayPmAppointmentType = constant.Virtual
+	isOk, nextAvailableDate := dao.CalcNextAvailableDate(currentTime, constant.Virtual, st)
 	if isOk != true {
 		t.Errorf("calc failed")
 	}
