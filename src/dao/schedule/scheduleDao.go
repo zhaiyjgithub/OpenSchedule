@@ -54,7 +54,11 @@ func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 	return st
 }
 
-func (d *Dao) SyncScheduleNextAvailableDateToES()  {
+/*
+  Update the next available date when update the settings for certain doctor.
+
+*/
+func (d *Dao) SyncCertainDoctorScheduleNextAvailableDateToES()  {
 
 }
 
