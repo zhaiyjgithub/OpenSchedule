@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var dao = NewDao(database.GetMySqlEngine())
+var dao = NewDao(database.GetMySqlEngine(), database.GetElasticSearchEngine())
 
 func TestDao_SetScheduleSettings(t *testing.T) {
 	settings := new(doctor.ScheduleSettings)
@@ -63,4 +63,20 @@ func TestDao_CalcNextAvailableDate(t *testing.T) {
 		t.Errorf("calc failed")
 	}
 	fmt.Println(nextAvailableDate)
+}
+
+func TestDao_GetDoctorInfoFromES(t *testing.T) {
+	id := dao.GetDoctorInfoFromES(1619970365)
+	if len(id) == 0 {
+		t.Errorf("get fail")
+	}
+	fmt.Println(id)
+}
+
+func TestDao_SyncCertainDoctorNextAvailableDateToES(t *testing.T) {
+	currentTime := time.Now().UTC().Format(time.RFC3339)
+	err := dao.SyncCertainDoctorNextAvailableDateToES(1619970365, currentTime, currentTime)
+	if err != nil {
+		t.Errorf("sync failed")
+	}
 }

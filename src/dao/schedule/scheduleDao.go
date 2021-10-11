@@ -2,9 +2,13 @@ package schedule
 
 import (
 	"OpenSchedule/src/constant"
+	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/utils"
+	"context"
 	"errors"
+	"fmt"
+	"github.com/olivere/elastic/v7"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
@@ -13,23 +17,11 @@ import (
 
 type Dao struct {
 	engine *gorm.DB
+	elasticSearchEngine *elastic.Client
 }
 
-type WeekSchedule struct {
-	AmIsEnable bool
-	AmStartTime string
-	AmEndTime string
-
-	PmIsEnable bool
-	PmStartTime string
-	PmEndTime string
-
-	DurationPerSlot	int
-	NumberPerSlot	int
-}
-
-func NewDao(engine *gorm.DB) *Dao {
-	return &Dao{engine: engine}
+func NewDao(engine *gorm.DB, elasticSearchEngine *elastic.Client) *Dao {
+	return &Dao{engine: engine, elasticSearchEngine: elasticSearchEngine}
 }
 
 func (d *Dao) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
@@ -55,8 +47,30 @@ func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 	return st
 }
 
-func (d *Dao) SyncCertainDoctorScheduleNextAvailableDateToES()  {
+func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64, nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
+	esId := d.GetDoctorInfoFromES(npi)
+	lines, err := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).ReturnSource(true).Doc(struct {
+		NextAvailableDateInClinic string
+	}{
+		NextAvailableDateInClinic: nextAvailableDateInClinic,
+	}).Source()
+	fmt.Println(lines)
+	return err
+}
 
+func (d *Dao) GetDoctorInfoFromES(npi int64) string {
+	q := elastic.NewTermQuery("Npi", npi)
+	result, err := d.elasticSearchEngine.Search().Index(database.DoctorIndexName).
+		Size(1).Query(q).Pretty(true).Do(context.Background())
+	esId := ""
+	if err != nil {
+		fmt.Println("search failed")
+		return esId
+	}
+	for _, hit := range result.Hits.Hits {
+		esId = hit.Id
+	}
+	return esId
 }
 
 func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings *doctor.ScheduleSettings) (bool, string)  {
