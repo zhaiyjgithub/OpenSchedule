@@ -24,6 +24,23 @@ func NewDao(engine *gorm.DB, elasticSearchEngine *elastic.Client) *Dao {
 	return &Dao{engine: engine, elasticSearchEngine: elasticSearchEngine}
 }
 
+func (d *Dao) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error {
+	st := &doctor.ClosedDateSettings{}
+	db := d.engine.Where("npi = ?", closeDateSettings.Npi).First(st)
+	if db.Error != nil {
+		db := d.engine.Create(closeDateSettings)
+		return db.Error
+	}else {
+		return errors.New("can't update existing closed date")
+	}
+}
+
+func (d *Dao) DeleteClosedDate(npi int64) error {
+	st := &doctor.ClosedDateSettings{}
+	db := d.engine.Where("npi = ?", npi).Delete(st)
+	return db.Error
+}
+
 func (d *Dao) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
 	st := &doctor.ScheduleSettings{}
 	db := d.engine.Where("npi = ?", setting.Npi).First(st)
@@ -131,6 +148,8 @@ func (d *Dao) CalcNextAvailableDateForEachWeekDay(currentTime time.Time, appoint
 	if err != nil {
 		return false, ""
 	}
+
+	//calc the next available date by the closed date.
 	if appointmentType == amAppointmentType && isAmEnable && currentTime.Before(amStartTime)  {
 		return true, amStartTime.Format(time.RFC3339)
 	}else if appointmentType == amAppointmentType && isAmEnable && currentTime.After(amStartTime) && currentTime.Before(amEndTime) {
@@ -175,4 +194,38 @@ func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool)
 	}
 	utcTime := time.Date(year, month, day, hour, min, 0, 0, time.UTC)
 	return utcTime, nil
+}
+
+func (d *Dao) CalcAvailableTimeByClosedDate(startTime string, endTime string,
+	closedStartTime string, closedEndTime string) error {
+	//if !utils.CheckDateTime(startTime) || !utils.CheckDateTime(endTime) ||
+	//	!utils.CheckDateTime(closedStartTime) || !utils.CheckDateTime(closedEndTime) {
+	//	return errors.New("param error")
+	//}
+	//startTimeMinutes, err := d.ConvertHourMinToMinutes(startTime)
+	//endTimeMinutes, err := d.ConvertHourMinToMinutes(endTime)
+	//closedStartTimeMinutes, err := d.ConvertHourMinToMinutes(closedStartTime)
+	//closedEndTimeMinutes, err := d.ConvertHourMinToMinutes(closedEndTime)
+	//if closedStartTime
+
+	return nil
+}
+
+func (d *Dao) ConvertHourMinToMinutes(dateTime string) (int, error) {
+	hour, min, err := d.ConvertDateTimeToHourMin(dateTime)
+	if err != nil {
+		return 0, err
+	}
+	return hour*60 + min, nil
+}
+
+func (d *Dao) ConvertDateTimeToHourMin(dateTime string) (int, int, error) {
+	if !utils.CheckDateTime(dateTime) {
+		errStr := fmt.Sprintf("param error: %s", dateTime)
+		return 0, 0, errors.New(errStr)
+	}
+	dateTimes := strings.Split(dateTime, ":")
+	hour, _ := strconv.Atoi(dateTimes[0])
+	min, _ := strconv.Atoi(dateTimes[1])
+	return hour, min, nil
 }

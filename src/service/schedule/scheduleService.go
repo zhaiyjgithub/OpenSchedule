@@ -12,6 +12,8 @@ import (
 type Service interface {
 	SetScheduleSettings (settings *doctor.ScheduleSettings) error
 	GetScheduleSettings(npi int64) *doctor.ScheduleSettings
+	AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error
+	DeleteClosedDate(npi int64) error
 }
 
 func NewService() Service {
@@ -50,4 +52,12 @@ func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(setting *doctor
 	}
 	err := s.dao.SyncCertainDoctorNextAvailableDateToES(setting.Npi, nextAvailableDateInClinic, nextAvailableDateVirtual)
 	return err
+}
+
+func (s *service) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error  {
+	return s.dao.AddClosedDate(closeDateSettings)
+}
+
+func (s *service) DeleteClosedDate(npi int64) error {
+	return s.dao.DeleteClosedDate(npi)
 }

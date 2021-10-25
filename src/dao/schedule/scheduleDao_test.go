@@ -75,8 +75,32 @@ func TestDao_GetDoctorInfoFromES(t *testing.T) {
 
 func TestDao_SyncCertainDoctorNextAvailableDateToES(t *testing.T) {
 	currentTime := time.Now().UTC().Format(time.RFC3339)
-	err := dao.SyncCertainDoctorNextAvailableDateToES(1619970365, currentTime, currentTime)
+	err := dao.SyncCertainDoctorNextAvailableDateToES(1902809254, currentTime, currentTime)
 	if err != nil {
 		t.Errorf("sync failed")
+	}
+}
+
+func TestDao_AddClosedDate(t *testing.T) {
+	startDate := time.Date(2021, 10, 23, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(2021, 10, 23, 23, 59, 0, 0, time.UTC)
+	st := &doctor.ClosedDateSettings{
+		Npi: 2222,
+		StartDate: startDate,
+		EndDate: endDate,
+		AmStartTime: "09:00",
+		AmEndTime: "12:00",
+	}
+	err := dao.AddClosedDate(st)
+	if err != nil {
+		t.Errorf("add closed date setting failed")
+	}
+}
+
+func TestDao_DeleteClosedDate(t *testing.T) {
+	npi := 2222
+	err := dao.DeleteClosedDate(int64(npi))
+	if err != nil {
+		t.Errorf("delete closed date setting failed")
 	}
 }
