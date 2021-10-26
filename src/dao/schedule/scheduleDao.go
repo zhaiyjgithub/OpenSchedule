@@ -139,9 +139,15 @@ func (d *Dao) ContainTimeInRange(t time.Time, startTime string, endTime string, 
 func (d *Dao) CalcNextAvailableDateForEachWeekDay(currentTime time.Time, appointmentType constant.AppointmentType, nextTime time.Time,
 	amAppointmentType constant.AppointmentType, isAmEnable bool, weekDayAMStartTime string, weekDayAMEndTime string,
 	pmAppointmentType constant.AppointmentType, isPmEnable bool, weekDayPMStartTime string, weekDayPMEndTime string,
-	durationOfSlot int, numberOfSlot int) (bool, string) {
-	amStartTime, err := d.ParseScheduleTimeToUTC(nextTime, weekDayAMStartTime, true)
-	amEndTime, err := d.ParseScheduleTimeToUTC(nextTime, weekDayAMEndTime, true)
+	durationOfSlot int, numberOfSlot int, settings doctor.ClosedDateSettings) (bool, string) {
+
+
+	//calc the next available date by the closed date.
+	newAmStartTime, newAmEndTime := d.CalcAvailableTimeByClosedDate(weekDayAMStartTime, weekDayAMEndTime, settings.AmStartTime, settings.AmEndTime)
+	newPmStartTime, newPmEndTime := d.CalcAvailableTimeByClosedDate(weekDayPMStartTime, weekDayPMEndTime, settings.PmStartTime, settings.PmEndTime)
+
+	amStartTime, err := d.ParseScheduleTimeToUTC(nextTime, newAmStartTime, true)
+	amEndTime, err := d.ParseScheduleTimeToUTC(nextTime, newAmEndTime, true)
 
 	pmStartTime, err := d.ParseScheduleTimeToUTC(nextTime, weekDayPMStartTime, false)
 	pmEndTime, err := d.ParseScheduleTimeToUTC(nextTime, weekDayPMEndTime, false)
@@ -149,7 +155,6 @@ func (d *Dao) CalcNextAvailableDateForEachWeekDay(currentTime time.Time, appoint
 		return false, ""
 	}
 
-	//calc the next available date by the closed date.
 	if appointmentType == amAppointmentType && isAmEnable && currentTime.Before(amStartTime)  {
 		return true, amStartTime.Format(time.RFC3339)
 	}else if appointmentType == amAppointmentType && isAmEnable && currentTime.After(amStartTime) && currentTime.Before(amEndTime) {
@@ -197,18 +202,28 @@ func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool)
 }
 
 func (d *Dao) CalcAvailableTimeByClosedDate(startTime string, endTime string,
-	closedStartTime string, closedEndTime string) error {
-	//if !utils.CheckDateTime(startTime) || !utils.CheckDateTime(endTime) ||
-	//	!utils.CheckDateTime(closedStartTime) || !utils.CheckDateTime(closedEndTime) {
-	//	return errors.New("param error")
-	//}
-	//startTimeMinutes, err := d.ConvertHourMinToMinutes(startTime)
-	//endTimeMinutes, err := d.ConvertHourMinToMinutes(endTime)
-	//closedStartTimeMinutes, err := d.ConvertHourMinToMinutes(closedStartTime)
-	//closedEndTimeMinutes, err := d.ConvertHourMinToMinutes(closedEndTime)
-	//if closedStartTime
+	closedStartTime string, closedEndTime string) (string, string) {
+	if !utils.CheckDateTime(startTime) || !utils.CheckDateTime(endTime) ||
+		!utils.CheckDateTime(closedStartTime) || !utils.CheckDateTime(closedEndTime) {
+		return "", ""
+	}
+	startTimeMinutes, _ := d.ConvertHourMinToMinutes(startTime)
+	endTimeMinutes, _ := d.ConvertHourMinToMinutes(endTime)
+	closedStartTimeMinutes, _ := d.ConvertHourMinToMinutes(closedStartTime)
+	closedEndTimeMinutes, _ := d.ConvertHourMinToMinutes(closedEndTime)
 
-	return nil
+	if startTimeMinutes >= closedStartTimeMinutes && startTimeMinutes <= closedEndTimeMinutes &&
+		endTimeMinutes > closedEndTimeMinutes {
+		startTimeMinutes = closedEndTimeMinutes
+	}else if endTimeMinutes > closedStartTimeMinutes && endTimeMinutes <= closedEndTimeMinutes &&
+		startTimeMinutes < closedStartTimeMinutes {
+		endTimeMinutes = closedStartTimeMinutes
+	}else if startTimeMinutes < closedStartTimeMinutes && endTimeMinutes > closedEndTimeMinutes {
+		endTimeMinutes = closedStartTimeMinutes
+	}else {
+		return "", ""
+	}
+	return d.ReverseMinutesToHourMin(startTimeMinutes), d.ReverseMinutesToHourMin(endTimeMinutes)
 }
 
 func (d *Dao) ConvertHourMinToMinutes(dateTime string) (int, error) {
@@ -217,6 +232,24 @@ func (d *Dao) ConvertHourMinToMinutes(dateTime string) (int, error) {
 		return 0, err
 	}
 	return hour*60 + min, nil
+}
+
+func (d *Dao) ReverseMinutesToHourMin (minutes int) string {
+	hour := minutes/60
+	min := minutes%60
+	hourStr := ""
+	if hour < 10 {
+		hourStr = fmt.Sprintf("0%d", hour)
+	}else {
+		hourStr = fmt.Sprintf("%d", hour)
+	}
+	minStr := ""
+	if min < 10 {
+		minStr = fmt.Sprintf("0%d", min)
+	}else {
+		minStr = fmt.Sprintf("%d", min)
+	}
+	return fmt.Sprintf("%s:%s", hourStr, minStr)
 }
 
 func (d *Dao) ConvertDateTimeToHourMin(dateTime string) (int, int, error) {

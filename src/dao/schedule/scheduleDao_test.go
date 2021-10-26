@@ -104,3 +104,23 @@ func TestDao_DeleteClosedDate(t *testing.T) {
 		t.Errorf("delete closed date setting failed")
 	}
 }
+
+func TestDao_ReverseMinutesToHourMin(t *testing.T) {
+	time := dao.ReverseMinutesToHourMin(15)
+	if time != "00:15" {
+		t.Errorf("expected failed %s", time)
+	}
+}
+
+func TestDao_CalcAvailableTimeByClosedDate(t *testing.T) {
+	startTime := "09:00"
+	endTime := "11:00"
+
+	closedStartTime := "10:00"
+	closedEndTime := "11:00"
+	newStartTime, newEndTime := dao.CalcAvailableTimeByClosedDate(startTime, endTime, closedStartTime, closedEndTime)
+	if newStartTime != "09:00" {
+		t.Errorf("calc failed")
+	}
+	fmt.Println(newStartTime, newEndTime)
+}
