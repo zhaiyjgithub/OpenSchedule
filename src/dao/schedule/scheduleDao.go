@@ -97,30 +97,35 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 	number := settings.NumberPerSlot
 	isOk := false
 	nextAvailableDate := ""
+
+	closedDateSettings := &doctor.ClosedDateSettings{
+		AmStartTime: "09:00",
+		AmEndTime: "11:00",
+	}
 	for i := 0; i < 14; i ++ {// future 2 weeks
 		nextTime := currentTime.Add(time.Hour*24*time.Duration(i))
 		weekDay := nextTime.Weekday()
 		if weekDay == time.Sunday && (settings.SundayAmIsEnable || settings.SundayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.SundayAmAppointmentType,  settings.SundayAmIsEnable, settings.SundayAmStartTime, settings.SundayAmEndTime,
-				settings.SundayPmAppointmentType, settings.SundayPmIsEnable, settings.SundayPmStartTime, settings.SundayPmEndTime,duration, number)
+				settings.SundayPmAppointmentType, settings.SundayPmIsEnable, settings.SundayPmStartTime, settings.SundayPmEndTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Monday && (settings.MondayAmIsEnable || settings.MondayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.MondayAmAppointmentType, settings.MondayAmIsEnable, settings.MondayAmStartTime, settings.MondayAmEndTime,
-				settings.MondayPmAppointmentType, settings.MondayPmIsEnable, settings.MondayPmStartTime, settings.MondayPmEndTime,duration, number)
+				settings.MondayPmAppointmentType, settings.MondayPmIsEnable, settings.MondayPmStartTime, settings.MondayPmEndTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Tuesday && (settings.TuesdayAmIsEnable || settings.TuesdayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.TuesdayAmAppointmentType, settings.TuesdayAmIsEnable, settings.TuesdayAmStartTime, settings.TuesdayAmEndTime,
-				settings.TuesdayPmAppointmentType, settings.TuesdayPmIsEnable, settings.TuesdayPmStartTime, settings.TuesdayPmEndTime,duration, number)
+				settings.TuesdayPmAppointmentType, settings.TuesdayPmIsEnable, settings.TuesdayPmStartTime, settings.TuesdayPmEndTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Wednesday && (settings.WednesdayAmIsEnable || settings.WednesdayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.WednesdayAmAppointmentType, settings.WednesdayAmIsEnable, settings.WednesdayAmStartTime, settings.WednesdayAmEndTime,
-				settings.WednesdayPmAppointmentType, settings.WednesdayPmIsEnable, settings.WednesdayPmStartTime, settings.WednesdayPmEndTime,duration, number)
+				settings.WednesdayPmAppointmentType, settings.WednesdayPmIsEnable, settings.WednesdayPmStartTime, settings.WednesdayPmEndTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Thursday && (settings.ThursdayAmIsEnable || settings.ThursdayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.ThursdayAmAppointmentType, settings.ThursdayAmIsEnable, settings.ThursdayAmStartTime, settings.ThursdayAmEndTime,
-				settings.ThursdayPmAppointmentType,settings.ThursdayPmIsEnable, settings.ThursdayPmStartTime, settings.ThursdayPmEndTime,duration, number)
+				settings.ThursdayPmAppointmentType,settings.ThursdayPmIsEnable, settings.ThursdayPmStartTime, settings.ThursdayPmEndTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Friday && (settings.FridayAmIsEnable || settings.FridayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.FridayAmAppointmentType, settings.FridayAmIsEnable, settings.FridayAmStartTime, settings.FridayAmEndTime,
-				settings.FridayPmAppointmentType, settings.FridayPmIsEnable, settings.FridayPmStartTime, settings.FridayPmEndTime,duration, number)
+				settings.FridayPmAppointmentType, settings.FridayPmIsEnable, settings.FridayPmStartTime, settings.FridayPmEndTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Saturday && (settings.SaturdayAmIsEnable || settings.SaturdayPmIsEnable) {
 			isOk, nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, nextTime, settings.SaturdayAmAppointmentType, settings.SaturdayAmIsEnable, settings.SaturdayAmStartTime, settings.SaturdayAmEndTime,
-				settings.SaturdayPmAppointmentType ,settings.SaturdayPmIsEnable, settings.SaturdayPmStartTime, settings.SaturdayPmEndTime,duration, number)
+				settings.SaturdayPmAppointmentType ,settings.SaturdayPmIsEnable, settings.SaturdayPmStartTime, settings.SaturdayPmEndTime,duration, number, closedDateSettings)
 		}
 		if isOk {
 			break
@@ -133,37 +138,33 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 func (d *Dao) ContainTimeInRange(t time.Time, startTime string, endTime string, isAmEnable bool, isPmEnable bool) bool  {
 	startTimeUTC, _ := d.ParseScheduleTimeToUTC(t, startTime, isAmEnable)
 	endTimeUTC, _ := d.ParseScheduleTimeToUTC(t, endTime, !isPmEnable)
-	return t.After(startTimeUTC) && t.Before(endTimeUTC)
+	return t.After(*startTimeUTC) && t.Before(*endTimeUTC)
 }
 
 func (d *Dao) CalcNextAvailableDateForEachWeekDay(currentTime time.Time, appointmentType constant.AppointmentType, nextTime time.Time,
 	amAppointmentType constant.AppointmentType, isAmEnable bool, weekDayAMStartTime string, weekDayAMEndTime string,
 	pmAppointmentType constant.AppointmentType, isPmEnable bool, weekDayPMStartTime string, weekDayPMEndTime string,
-	durationOfSlot int, numberOfSlot int, settings doctor.ClosedDateSettings) (bool, string) {
-
-
+	durationOfSlot int, numberOfSlot int,
+	closedDateSettings *doctor.ClosedDateSettings) (bool, string) {
 	//calc the next available date by the closed date.
-	newAmStartTime, newAmEndTime := d.CalcAvailableTimeByClosedDate(weekDayAMStartTime, weekDayAMEndTime, settings.AmStartTime, settings.AmEndTime)
-	newPmStartTime, newPmEndTime := d.CalcAvailableTimeByClosedDate(weekDayPMStartTime, weekDayPMEndTime, settings.PmStartTime, settings.PmEndTime)
+	newAmStartTime, newAmEndTime := d.CalcAvailableTimeByClosedDate(weekDayAMStartTime, weekDayAMEndTime, closedDateSettings.AmStartTime, closedDateSettings.AmEndTime)
+	newPmStartTime, newPmEndTime := d.CalcAvailableTimeByClosedDate(weekDayPMStartTime, weekDayPMEndTime, closedDateSettings.PmStartTime, closedDateSettings.PmEndTime)
 
-	amStartTime, err := d.ParseScheduleTimeToUTC(nextTime, newAmStartTime, true)
-	amEndTime, err := d.ParseScheduleTimeToUTC(nextTime, newAmEndTime, true)
+	amStartTime, _ := d.ParseScheduleTimeToUTC(nextTime, newAmStartTime, true)
+	amEndTime, _ := d.ParseScheduleTimeToUTC(nextTime, newAmEndTime, true)
 
-	pmStartTime, err := d.ParseScheduleTimeToUTC(nextTime, weekDayPMStartTime, false)
-	pmEndTime, err := d.ParseScheduleTimeToUTC(nextTime, weekDayPMEndTime, false)
-	if err != nil {
-		return false, ""
-	}
+	pmStartTime, _ := d.ParseScheduleTimeToUTC(nextTime, newPmStartTime, false)
+	pmEndTime, _ := d.ParseScheduleTimeToUTC(nextTime, newPmEndTime, false)
 
-	if appointmentType == amAppointmentType && isAmEnable && currentTime.Before(amStartTime)  {
+	if appointmentType == amAppointmentType && isAmEnable && amStartTime != nil && currentTime.Before(*amStartTime)  {
 		return true, amStartTime.Format(time.RFC3339)
-	}else if appointmentType == amAppointmentType && isAmEnable && currentTime.After(amStartTime) && currentTime.Before(amEndTime) {
-		nextAvailableDateTime := d.CalcNextAvailableDateForTimeRange(currentTime, amStartTime, durationOfSlot)
+	}else if appointmentType == amAppointmentType && isAmEnable && amStartTime != nil && currentTime.After(*amStartTime) && amEndTime != nil && currentTime.Before(*amEndTime) {
+		nextAvailableDateTime := d.CalcNextAvailableDateForTimeRange(currentTime, *amStartTime, durationOfSlot)
 		return true, nextAvailableDateTime
-	}else if appointmentType == pmAppointmentType && isPmEnable && currentTime.Before(pmStartTime)  {
+	}else if appointmentType == pmAppointmentType && isPmEnable && pmStartTime != nil && currentTime.Before(*pmStartTime)  {
 		return true, pmStartTime.Format(time.RFC3339)
-	} else if appointmentType == pmAppointmentType && isPmEnable && currentTime.After(amEndTime) && currentTime.Before(pmEndTime) {
-		nextAvailableDateTime := d.CalcNextAvailableDateForTimeRange(currentTime, pmStartTime, durationOfSlot)
+	} else if appointmentType == pmAppointmentType && isPmEnable && amStartTime != nil && currentTime.After(*amEndTime) && pmStartTime != nil && currentTime.Before(*pmEndTime) {
+		nextAvailableDateTime := d.CalcNextAvailableDateForTimeRange(currentTime, *pmStartTime, durationOfSlot)
 		return true, nextAvailableDateTime
 	}
 	return false, ""
@@ -183,9 +184,9 @@ func (d *Dao) CalcNextAvailableDateForTimeRange(now time.Time, startTime time.Ti
 	return nextAvailableDateTime
 }
 
-func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool) (time.Time, error) {
+func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool) (*time.Time, error) {
 	if !utils.CheckDateTime(scheduleTime) {
-		return time.Now().UTC(), errors.New("param error")
+		return nil, errors.New("param error")
 	}
 	year := t.Year()
 	month := t.Month()
@@ -198,14 +199,16 @@ func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool)
 		hour += 12
 	}
 	utcTime := time.Date(year, month, day, hour, min, 0, 0, time.UTC)
-	return utcTime, nil
+	return &utcTime, nil
 }
 
 func (d *Dao) CalcAvailableTimeByClosedDate(startTime string, endTime string,
 	closedStartTime string, closedEndTime string) (string, string) {
-	if !utils.CheckDateTime(startTime) || !utils.CheckDateTime(endTime) ||
-		!utils.CheckDateTime(closedStartTime) || !utils.CheckDateTime(closedEndTime) {
+	if !utils.CheckDateTime(startTime) || !utils.CheckDateTime(endTime) {
 		return "", ""
+	}
+	if len(closedStartTime) == 0 && len(closedEndTime) == 0 {
+		return startTime, endTime
 	}
 	startTimeMinutes, _ := d.ConvertHourMinToMinutes(startTime)
 	endTimeMinutes, _ := d.ConvertHourMinToMinutes(endTime)
