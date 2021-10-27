@@ -8,6 +8,7 @@ import (
 	"OpenSchedule/src/utils"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"time"
 )
 
 type ScheduleController struct {
@@ -48,11 +49,28 @@ func (c *ScheduleController) GetScheduleSettings()  {
 }
 
 func (c *ScheduleController) AddClosedDateSettings()  {
-	var p doctor.ClosedDateSettings
+	type Param struct {
+		Npi	int64	`json:"npi" validate:"gt=0"`
+		ClosedDate time.Time `validate:"required"`
+		AmStartDateTime time.Time `validate:"required"`
+		AmEndDateTime time.Time `validate:"required"`
+		PmStartDateTime time.Time `validate:"required"`
+		PmEndTimeDateTime time.Time `validate:"required"`
+	}
+	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	if err := c.ScheduleService.AddClosedDate(&p); err != nil {
+
+	st := &doctor.ClosedDateSettings{
+		Npi: p.Npi,
+		ClosedDate: p.ClosedDate.UnixNano(),
+		AmStartDateTime: p.AmStartDateTime.UnixNano(),
+		AmEndDateTime: p.AmEndDateTime.UnixNano(),
+		PmStartDateTime: p.PmStartDateTime.UnixNano(),
+		PmEndTimeDateTime: p.PmEndTimeDateTime.UnixNano(),
+	}
+	if err := c.ScheduleService.AddClosedDate(st); err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	}else {
 		response.Success(c.Ctx, response.Successful, nil)
