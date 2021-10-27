@@ -24,45 +24,6 @@ func NewDao(engine *gorm.DB, elasticSearchEngine *elastic.Client) *Dao {
 	return &Dao{engine: engine, elasticSearchEngine: elasticSearchEngine}
 }
 
-func (d *Dao) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error {
-	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ?", closeDateSettings.Npi).First(st)
-	if db.Error != nil {
-		db := d.engine.Create(closeDateSettings)
-		return db.Error
-	}else {
-		return errors.New("can't update existing closed date")
-	}
-}
-
-func (d *Dao) DeleteClosedDate(npi int64) error {
-	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ?", npi).Delete(st)
-	return db.Error
-}
-
-func (d *Dao) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
-	st := &doctor.ScheduleSettings{}
-	db := d.engine.Where("npi = ?", setting.Npi).First(st)
-	if db.Error != nil { // not found
-		db = d.engine.Create(setting)
-		return db.Error
-	}else {
-		setting.ID = st.ID
-		db = d.engine.Model(&doctor.ScheduleSettings{}).Where("id = ?", st.ID).
-			Select("*").Omit("created_at").Updates(setting)
-		return db.Error
-	}
-}
-
-func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
-	st := &doctor.ScheduleSettings{}
-	db := d.engine.Where("npi = ?", npi).First(st)
-	if db.Error != nil {
-		return nil
-	}
-	return st
-}
 
 func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64, nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
 	esId := d.GetDoctorInfoFromES(npi)

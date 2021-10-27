@@ -1,4 +1,5 @@
 #drop table schedule_closed_date;
+use openSchedule;
 create table schedule_closed_date
 (
     id  int auto_increment,

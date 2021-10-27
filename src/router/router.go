@@ -12,4 +12,6 @@ const (
 	ScheduleSettings = AnyHealthService + "/Schedule"
 	SetScheduleSettings = "/SetScheduleSettings"
 	GetScheduleSettings = "/GetScheduleSettings"
+	AddClosedDateSettings = "/AddClosedDateSettings"
+	DeleteClosedDateSettings = "/DeleteClosedDateSettings"
 )

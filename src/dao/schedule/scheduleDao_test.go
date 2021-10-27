@@ -41,13 +41,13 @@ func TestDao_CalcNextAvailableDateForTimeRange(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
-	currentTime := time.Date(2021, 10, 26, 9, 50, 0, 0, time.UTC)
+	currentTime := time.Date(2021, 10, 27, 10, 0, 0, 0, time.UTC)
 	nextTime := currentTime.Add(time.Hour*24*time.Duration(0))
 	closedDateSettings := &doctor.ClosedDateSettings{
 		AmStartTime: "09:00",
 		AmEndTime: "11:00",
 	}
-	isOk, nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, constant.Virtual, nextTime, constant.InClinic, true, "09:00",
+	isOk, nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, constant.InClinic, nextTime, constant.InClinic, true, "09:00",
 			"12:00", constant.Virtual, true,"01:00", "06:00", 15, 1, closedDateSettings)
 	if isOk != true {
 		t.Errorf("calc failed")
@@ -56,8 +56,8 @@ func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDate(t *testing.T) {
-	currentTime := time.Date(2021, 10, 11, 9, 36, 0, 0, time.UTC)
-	st := dao.GetScheduleSettings(3)
+	currentTime := time.Date(2021, 10, 27, 9, 36, 0, 0, time.UTC)
+	st := dao.GetScheduleSettings(1902809254)
 	st.MondayAmIsEnable = true
 	st.MondayPmIsEnable = true
 	st.MondayAmAppointmentType = constant.InClinic
@@ -103,7 +103,7 @@ func TestDao_AddClosedDate(t *testing.T) {
 
 func TestDao_DeleteClosedDate(t *testing.T) {
 	npi := 2222
-	err := dao.DeleteClosedDate(int64(npi))
+	err := dao.DeleteClosedDate(npi)
 	if err != nil {
 		t.Errorf("delete closed date setting failed")
 	}
