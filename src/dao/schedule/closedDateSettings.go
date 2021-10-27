@@ -2,15 +2,17 @@ package schedule
 
 import (
 	"OpenSchedule/src/model/doctor"
+	"fmt"
 	"time"
 )
 
 type ClosedDate struct {
 	Npi int64
-	AmStartDateTime time.Time
-	AmEndDateTime time.Time
-	PmStartDateTime time.Time
-	PmEndDateTime time.Time
+	ClosedDate time.Time
+	AmStartTime string
+	AmEndTime string
+	PmStartTime string
+	PmEndTime string
 }
 
 func (d *Dao) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error {
@@ -43,11 +45,31 @@ func (d *Dao) GetClosedDateByDateTime(npi int64, currentTime time.Time) (*Closed
 	}else {
 		cd := &ClosedDate{
 			Npi: st.Npi,
-			AmStartDateTime: time.Unix(st.AmStartDateTime, 0),
-			AmEndDateTime: time.Unix(st.AmEndDateTime, 0),
-			PmStartDateTime: time.Unix(st.PmStartDateTime, 0),
-			PmEndDateTime: time.Unix(st.PmEndTimeDateTime, 0),
+			ClosedDate: date,
+			AmStartTime: d.GetHourMinuteFromTimestamp(st.AmStartDateTime),
+			AmEndTime: d.GetHourMinuteFromTimestamp(st.AmEndDateTime),
+			PmStartTime: d.GetHourMinuteFromTimestamp(st.PmStartDateTime),
+			PmEndTime: d.GetHourMinuteFromTimestamp(st.PmEndTimeDateTime),
 		}
 		return cd, nil
 	}
+}
+
+func (d *Dao) GetHourMinuteFromTimestamp(timestamp int64) string {
+	t := time.Unix(timestamp, 0)
+	hour := t.Hour()
+	minute := t.Minute()
+	var hourStr, minuteStr string
+	if hour < 10 {
+		hourStr = fmt.Sprintf("0%d", hour)
+	}else {
+		hourStr = fmt.Sprintf("0%d", hour)
+	}
+
+	if minute < 10 {
+		minuteStr = fmt.Sprintf("0%d", minute)
+	}else {
+		minuteStr = fmt.Sprintf("0%d", minute)
+	}
+	return hourStr + "-" + minuteStr
 }
