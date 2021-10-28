@@ -106,8 +106,8 @@ func TestDao_AddClosedDate(t *testing.T) {
 }
 
 func TestDao_DeleteClosedDate(t *testing.T) {
-	npi := 1902809254
-	err := dao.DeleteClosedDate(npi)
+	id := 1
+	err := dao.DeleteClosedDate(id)
 	if err != nil {
 		t.Errorf("delete closed date setting failed")
 	}
@@ -133,5 +133,5 @@ func TestDao_CalcAvailableTimeByClosedDate(t *testing.T) {
 	//fmt.Println(newStartTime, newEndTime)
 	closeDate := time.Date(2021, 10, 28, 0, 0, 0, 0, time.UTC)
 	d, _ := dao.GetClosedDateByDateTime(1902809254, closeDate)
-	fmt.Println(d)
+	fmt.Printf("%v", d)
 }

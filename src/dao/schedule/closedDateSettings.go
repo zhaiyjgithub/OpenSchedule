@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"OpenSchedule/src/constant"
 	"OpenSchedule/src/model/doctor"
 	"fmt"
 	"time"
@@ -36,38 +37,46 @@ func (d *Dao) GetClosedDate(npi int64) *doctor.ClosedDateSettings {
 }
 
 func (d *Dao) GetClosedDateByDateTime(npi int64, currentTime time.Time) (*ClosedDate, error) {
-	date := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
+	startDate := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
+	fStartDate := startDate.Format(constant.YYYY_MM_DD_HH_mm_SS)
+	fEndDate := startDate.Add(time.Hour*24).Format(constant.YYYY_MM_DD_HH_mm_SS)
 	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ? and closed_date = '2021-10-28 08:00:00'", npi).First(st)
+	db := d.engine.Where("npi = ? and (closed_date >= UNIX_TIMESTAMP(?) or closed_date < UNIX_TIMESTAMP(?))", npi, fStartDate, fEndDate).First(st)
 	if db.Error != nil {
 		return nil, db.Error
 	}else {
 		cd := &ClosedDate{
 			Npi: st.Npi,
-			ClosedDate: date,
-			AmStartTime: d.GetHourMinuteFromTimestamp(st.AmStartDateTime),
-			AmEndTime: d.GetHourMinuteFromTimestamp(st.AmEndDateTime),
-			PmStartTime: d.GetHourMinuteFromTimestamp(st.PmStartDateTime),
-			PmEndTime: d.GetHourMinuteFromTimestamp(st.PmEndDateTime),
+			ClosedDate: st.ClosedDate,
+			AmStartTime: d.GetHourMinuteFromTimestamp(st.AmStartDateTime, true),
+			AmEndTime: d.GetHourMinuteFromTimestamp(st.AmEndDateTime, true),
+			PmStartTime: d.GetHourMinuteFromTimestamp(st.PmStartDateTime, false),
+			PmEndTime: d.GetHourMinuteFromTimestamp(st.PmEndDateTime, false),
 		}
 		return cd, nil
 	}
 }
 
-func (d *Dao) GetHourMinuteFromTimestamp(t time.Time) string {
+func (d *Dao) GetHourMinuteFromTimestamp(t time.Time, isAM bool) string {
+	if t.Equal(constant.DefaultTimeStamp) {
+		return ""
+	}
 	hour := t.Hour()
+	if !isAM {
+		hour = hour - 12
+	}
 	minute := t.Minute()
 	var hourStr, minuteStr string
 	if hour < 10 {
 		hourStr = fmt.Sprintf("0%d", hour)
 	}else {
-		hourStr = fmt.Sprintf("0%d", hour)
+		hourStr = fmt.Sprintf("%d", hour)
 	}
 
 	if minute < 10 {
 		minuteStr = fmt.Sprintf("0%d", minute)
 	}else {
-		minuteStr = fmt.Sprintf("0%d", minute)
+		minuteStr = fmt.Sprintf("%d", minute)
 	}
 	return hourStr + "-" + minuteStr
 }

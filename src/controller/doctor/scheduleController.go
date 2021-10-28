@@ -64,11 +64,11 @@ func (c *ScheduleController) AddClosedDateSettings()  {
 
 	st := &doctor.ClosedDateSettings{
 		Npi: p.Npi,
-		ClosedDate: p.ClosedDate.UnixNano(),
-		AmStartDateTime: p.AmStartDateTime.UnixNano(),
-		AmEndDateTime: p.AmEndDateTime.UnixNano(),
-		PmStartDateTime: p.PmStartDateTime.UnixNano(),
-		PmEndTimeDateTime: p.PmEndTimeDateTime.UnixNano(),
+		ClosedDate: p.ClosedDate,
+		AmStartDateTime: p.AmStartDateTime,
+		AmEndDateTime: p.AmEndDateTime,
+		PmStartDateTime: p.PmStartDateTime,
+		PmEndDateTime: p.PmEndTimeDateTime,
 	}
 	if err := c.ScheduleService.AddClosedDate(st); err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
