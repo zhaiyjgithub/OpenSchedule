@@ -37,9 +37,8 @@ func (d *Dao) GetClosedDate(npi int64) *doctor.ClosedDateSettings {
 
 func (d *Dao) GetClosedDateByDateTime(npi int64, currentTime time.Time) (*ClosedDate, error) {
 	date := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
-	cn := date.UnixNano()
 	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ? and closed_date = ?", npi, cn).First(st)
+	db := d.engine.Where("npi = ? and closed_date = '2021-10-28 08:00:00'", npi).First(st)
 	if db.Error != nil {
 		return nil, db.Error
 	}else {
@@ -49,14 +48,13 @@ func (d *Dao) GetClosedDateByDateTime(npi int64, currentTime time.Time) (*Closed
 			AmStartTime: d.GetHourMinuteFromTimestamp(st.AmStartDateTime),
 			AmEndTime: d.GetHourMinuteFromTimestamp(st.AmEndDateTime),
 			PmStartTime: d.GetHourMinuteFromTimestamp(st.PmStartDateTime),
-			PmEndTime: d.GetHourMinuteFromTimestamp(st.PmEndTimeDateTime),
+			PmEndTime: d.GetHourMinuteFromTimestamp(st.PmEndDateTime),
 		}
 		return cd, nil
 	}
 }
 
-func (d *Dao) GetHourMinuteFromTimestamp(timestamp int64) string {
-	t := time.Unix(timestamp, 0)
+func (d *Dao) GetHourMinuteFromTimestamp(t time.Time) string {
 	hour := t.Hour()
 	minute := t.Minute()
 	var hourStr, minuteStr string

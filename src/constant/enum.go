@@ -1,5 +1,7 @@
 package constant
 
+import "time"
+
 type AppointmentType int
 const (
 	All AppointmentType = 0
@@ -20,3 +22,5 @@ const  (
 	ByDefault SortType = 0
 	ByDistance SortType = 1
 )
+
+var DefaultTimeStamp = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)

@@ -41,14 +41,16 @@ func TestDao_CalcNextAvailableDateForTimeRange(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
-	currentTime := time.Date(2021, 10, 27, 10, 0, 0, 0, time.UTC)
+	currentTime := time.Date(2021, 10, 28, 10, 0, 0, 0, time.UTC)
 	nextTime := currentTime.Add(time.Hour*24*time.Duration(0))
-	closedDateSettings := &doctor.ClosedDateSettings{
-		AmStartTime: "09:00",
-		AmEndTime: "11:00",
+	closedDate := &ClosedDate{
+
 	}
+	closedDate.ClosedDate = time.Date(2021, 10, 28, 10, 0, 0, 0, time.UTC)
+	closedDate.AmStartTime = "09:00"
+	closedDate.AmEndTime = "12:00"
 	isOk, nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, constant.InClinic, nextTime, constant.InClinic, true, "09:00",
-			"12:00", constant.Virtual, true,"01:00", "06:00", 15, 1, closedDateSettings)
+			"12:00", constant.Virtual, true,"01:00", "06:00", 15, 1, closedDate)
 	if isOk != true {
 		t.Errorf("calc failed")
 	}
@@ -86,14 +88,16 @@ func TestDao_SyncCertainDoctorNextAvailableDateToES(t *testing.T) {
 }
 
 func TestDao_AddClosedDate(t *testing.T) {
-	startDate := time.Date(2021, 10, 23, 0, 0, 0, 0, time.UTC)
-	endDate := time.Date(2021, 10, 23, 23, 59, 0, 0, time.UTC)
+	closeDate := time.Date(2021, 10, 28, 0, 0, 0, 0, time.UTC)
+	amStartDateTime := time.Date(2021, 10, 28, 9, 0, 0, 0, time.UTC)
+	amEndDateTime := time.Date(2021, 10, 28, 11, 0, 0, 0, time.UTC)
 	st := &doctor.ClosedDateSettings{
-		Npi: 2222,
-		StartDate: startDate,
-		EndDate: endDate,
-		AmStartTime: "09:00",
-		AmEndTime: "12:00",
+		Npi: 1902809254,
+		ClosedDate: closeDate,
+		AmStartDateTime: amStartDateTime,
+		AmEndDateTime: amEndDateTime,
+		PmStartDateTime: constant.DefaultTimeStamp,
+		PmEndDateTime: constant.DefaultTimeStamp,
 	}
 	err := dao.AddClosedDate(st)
 	if err != nil {
@@ -102,7 +106,7 @@ func TestDao_AddClosedDate(t *testing.T) {
 }
 
 func TestDao_DeleteClosedDate(t *testing.T) {
-	npi := 2222
+	npi := 1902809254
 	err := dao.DeleteClosedDate(npi)
 	if err != nil {
 		t.Errorf("delete closed date setting failed")
@@ -117,14 +121,17 @@ func TestDao_ReverseMinutesToHourMin(t *testing.T) {
 }
 
 func TestDao_CalcAvailableTimeByClosedDate(t *testing.T) {
-	startTime := "09:00"
-	endTime := "11:00"
-
-	closedStartTime := "10:00"
-	closedEndTime := "11:00"
-	newStartTime, newEndTime := dao.CalcAvailableTimeByClosedDate(startTime, endTime, closedStartTime, closedEndTime)
-	if newStartTime != "09:00" {
-		t.Errorf("calc failed")
-	}
-	fmt.Println(newStartTime, newEndTime)
+	//startTime := "09:00"
+	//endTime := "11:00"
+	//
+	//closedStartTime := "10:00"
+	//closedEndTime := "11:00"
+	//newStartTime, newEndTime := dao.CalcAvailableTimeByClosedDate(startTime, endTime, closedStartTime, closedEndTime)
+	//if newStartTime != "09:00" {
+	//	t.Errorf("calc failed")
+	//}
+	//fmt.Println(newStartTime, newEndTime)
+	closeDate := time.Date(2021, 10, 28, 0, 0, 0, 0, time.UTC)
+	d, _ := dao.GetClosedDateByDateTime(1902809254, closeDate)
+	fmt.Println(d)
 }
