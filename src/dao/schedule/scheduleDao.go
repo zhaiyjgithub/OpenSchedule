@@ -263,7 +263,9 @@ func (d *Dao) CalcAvailableTimeRangeByClosedDate(startDateTime time.Time, endDat
 	}else if (endDateTime.Before(closedStartDateTime) || endDateTime.Equal(closedStartDateTime)) ||
 		(startDateTime.Before(closedEndDateTime) || startDateTime.Equal(closedEndDateTime)) {
 		return &startDateTime, &endDateTime
-	}else {
+	}else if startDateTime.After(closedEndDateTime) || startDateTime.Equal(closedEndDateTime)  {
+		return &startDateTime, &endDateTime
+	} else {
 		return nil, nil
 	}
 }
