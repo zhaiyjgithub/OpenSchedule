@@ -5,11 +5,12 @@ drop table schedule_closed_date;
 
 
 
-create table schedule_closed_date
+create table closed_date_settings
 (
     id  int auto_increment,
     npi int(12) not null,
-    closed_date timestamp DEFAULT '2000-01-01 00:00:00',
+    start_date timestamp DEFAULT '2000-01-01 00:00:00',
+    end_date timestamp DEFAULT '2000-01-01 00:00:00',
     am_start_date_time timestamp DEFAULT '2000-01-01 00:00:00',
     am_end_date_time timestamp DEFAULT '2000-01-01 00:00:00',
     pm_start_date_time timestamp DEFAULT '2000-01-01 00:00:00',
@@ -20,4 +21,4 @@ create table schedule_closed_date
     primary key (id)
 );
 
-desc schedule_closed_date
+desc closed_date_settings

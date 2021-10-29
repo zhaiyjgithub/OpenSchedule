@@ -36,25 +36,14 @@ func (d *Dao) GetClosedDate(npi int64) *doctor.ClosedDateSettings {
 	return st
 }
 
-func (d *Dao) GetClosedDateByDateTime(npi int64, currentTime time.Time) (*ClosedDate, error) {
-	startDate := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
-	fStartDate := startDate.Format(constant.YYYY_MM_DD_HH_mm_SS)
-	fEndDate := startDate.Add(time.Hour*24).Format(constant.YYYY_MM_DD_HH_mm_SS)
+func (d *Dao) GetClosedDateByDateTime(npi int64, t time.Time) (*doctor.ClosedDateSettings, error) {
+	ft := t.Format(constant.YYYY_MM_DD_HH_mm_SS)
 	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ? and (closed_date >= UNIX_TIMESTAMP(?) or closed_date < UNIX_TIMESTAMP(?))", npi, fStartDate, fEndDate).First(st)
+	db := d.engine.Where("npi = ? and start_date <= ? and end_date > ?", npi, ft, ft).First(st)
 	if db.Error != nil {
 		return nil, db.Error
-	}else {
-		cd := &ClosedDate{
-			Npi: st.Npi,
-			ClosedDate: st.ClosedDate,
-			AmStartTime: d.GetHourMinuteFromTimestamp(st.AmStartDateTime, true),
-			AmEndTime: d.GetHourMinuteFromTimestamp(st.AmEndDateTime, true),
-			PmStartTime: d.GetHourMinuteFromTimestamp(st.PmStartDateTime, false),
-			PmEndTime: d.GetHourMinuteFromTimestamp(st.PmEndDateTime, false),
-		}
-		return cd, nil
 	}
+	return st, nil
 }
 
 func (d *Dao) GetHourMinuteFromTimestamp(t time.Time, isAM bool) string {
