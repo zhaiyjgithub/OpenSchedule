@@ -63,13 +63,14 @@ func (c *ScheduleController) AddClosedDateSettings()  {
 
 func (c *ScheduleController) DeleteClosedDateSettings()  {
 	type Param struct {
-		ID int `json:"id"`
+		Npi int64 `json:"npi" validate:"gt=0"`
+		Sid int `json:"id"`
 	}
 	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	if err := c.ScheduleService.DeleteClosedDate(p.ID); err != nil {
+	if err := c.ScheduleService.DeleteClosedDate(p.Npi, p.Sid); err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	}else {
 		response.Success(c.Ctx, response.Successful, nil)

@@ -21,9 +21,9 @@ func (d *Dao) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error 
 	return db.Error
 }
 
-func (d *Dao) DeleteClosedDate(id int) error {
+func (d *Dao) DeleteClosedDateByID(npi int64, id int) error {
 	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("id = ?", id).Delete(st)
+	db := d.engine.Where("id = ? && npi = ?", id, npi).Delete(st)
 	return db.Error
 }
 

@@ -13,7 +13,7 @@ type Service interface {
 	SetScheduleSettings (settings *doctor.ScheduleSettings) error
 	GetScheduleSettings(npi int64) *doctor.ScheduleSettings
 	AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error
-	DeleteClosedDate(id int) error
+	DeleteClosedDate(npi int64, id int) error
 	GetClosedDate(npi int64) []doctor.ClosedDateSettings
 }
 
@@ -59,8 +59,8 @@ func (s *service) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) er
 	return s.dao.AddClosedDate(closeDateSettings)
 }
 
-func (s *service) DeleteClosedDate(id int) error {
-	return s.dao.DeleteClosedDate(id)
+func (s *service) DeleteClosedDate(npi int64, id int) error {
+	return s.dao.DeleteClosedDateByID(npi, id)
 }
 
 func (s *service) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
