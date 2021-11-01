@@ -29,7 +29,7 @@ func GetMySqlEngine() *gorm.DB  {
 	mysqlOnce.Do(func() {
 		var err error
 		c := conf.MySQLConf
-		driveSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+		driveSource := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True",
 			c.User, c.Password, c.Host, c.Port, c.DatabaseName)
 		localMySqlEngine, err = gorm.Open(mysql.Open(driveSource), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),

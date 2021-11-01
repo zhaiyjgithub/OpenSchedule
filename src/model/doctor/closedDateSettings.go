@@ -5,7 +5,7 @@ import "time"
 // ClosedDateSettings [...]
 type  	ClosedDateSettings	struct {
 	ID	int	`gorm:"primaryKey;column:id;type:int(11);not null" json:"-"`
-	Npi	int	`gorm:"column:npi;type:int(12);not null" json:"npi"`
+	Npi	int64	`gorm:"column:npi;type:int(12);not null" json:"npi"`
 	StartDate	time.Time	`gorm:"column:start_date;type:timestamp;not null;default:2000-01-01 00:00:00" json:"startDate"`
 	EndDate	time.Time	`gorm:"column:end_date;type:timestamp;not null;default:2000-01-01 00:00:00" json:"endDate"`
 	AmStartDateTime	time.Time	`gorm:"column:am_start_date_time;type:timestamp;not null;default:2000-01-01 00:00:00" json:"amStartDateTime"`
