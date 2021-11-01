@@ -20,6 +20,8 @@ func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(iris.MethodPost, router.GetScheduleSettings, "GetScheduleSettings")
 	b.Handle(iris.MethodPost, router.AddClosedDateSettings, "AddClosedDateSettings")
 	b.Handle(iris.MethodPost, router.DeleteClosedDateSettings, "DeleteClosedDateSettings")
+	b.Handle(iris.MethodPost, router.GetClosedDateSettings, "GetClosedDateSettings")
+
 }
 
 func (c *ScheduleController) SetScheduleSettings()  {
@@ -72,4 +74,16 @@ func (c *ScheduleController) DeleteClosedDateSettings()  {
 	}else {
 		response.Success(c.Ctx, response.Successful, nil)
 	}
+}
+
+func (c *ScheduleController) GetClosedDateSettings (){
+	type Param struct {
+		Npi int64 `json:"npi" validate:"gt=0"`
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	list := c.ScheduleService.GetClosedDate(p.Npi)
+	response.Success(c.Ctx, response.Successful, list)
 }

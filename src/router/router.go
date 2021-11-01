@@ -14,4 +14,5 @@ const (
 	GetScheduleSettings = "/GetScheduleSettings"
 	AddClosedDateSettings = "/AddClosedDateSettings"
 	DeleteClosedDateSettings = "/DeleteClosedDateSettings"
+	GetClosedDateSettings = "/GetClosedDateSettings"
 )

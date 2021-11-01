@@ -155,3 +155,14 @@ func TestDao_GetClosedDateByDateTime(t *testing.T) {
 	d, _ := dao.GetClosedDateByDateTime(testNpi, cd)
 	fmt.Printf("%v", d)
 }
+
+func TestDao_GetClosedDate(t *testing.T) {
+	l := dao.GetClosedDate(454344)
+	fmt.Println(l)
+
+	var a []doctor.ClosedDateSettings
+	println(a == nil)
+
+	c := make([]doctor.ClosedDateSettings, 0)
+	println(c == nil)
+}

@@ -27,13 +27,10 @@ func (d *Dao) DeleteClosedDate(id int) error {
 	return db.Error
 }
 
-func (d *Dao) GetClosedDate(npi int64) *doctor.ClosedDateSettings {
-	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ?", npi).First(st)
-	if db.Error != nil {
-		return nil
-	}
-	return st
+func (d *Dao) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
+	var list []doctor.ClosedDateSettings
+	_ = d.engine.Where("npi = ?", npi).Find(&list)
+	return list
 }
 
 func (d *Dao) GetClosedDateByDateTime(npi int64, t time.Time) (*doctor.ClosedDateSettings, error) {

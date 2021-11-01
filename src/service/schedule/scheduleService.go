@@ -14,6 +14,7 @@ type Service interface {
 	GetScheduleSettings(npi int64) *doctor.ScheduleSettings
 	AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error
 	DeleteClosedDate(id int) error
+	GetClosedDate(npi int64) []doctor.ClosedDateSettings
 }
 
 func NewService() Service {
@@ -42,12 +43,12 @@ func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(setting *doctor
 	//get the next available date
 	//begin to update the es for certain doctor
 	currentTime := time.Now().UTC()
-	isOk, nextAvailableDateInClinic := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, setting)
-	if !isOk {
+	nextAvailableDateInClinic := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, setting)
+	if len(nextAvailableDateInClinic) == 0 {
 		return errors.New("calc nextAvailable Date in clinic failed")
 	}
-	isOk, nextAvailableDateVirtual := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, setting)
-	if !isOk {
+	nextAvailableDateVirtual := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, setting)
+	if len(nextAvailableDateInClinic) == 0 {
 		return errors.New("calc nextAvailable date virtual failed")
 	}
 	err := s.dao.SyncCertainDoctorNextAvailableDateToES(setting.Npi, nextAvailableDateInClinic, nextAvailableDateVirtual)
@@ -60,4 +61,8 @@ func (s *service) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) er
 
 func (s *service) DeleteClosedDate(id int) error {
 	return s.dao.DeleteClosedDate(id)
+}
+
+func (s *service) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
+	return s.dao.GetClosedDate(npi)
 }
