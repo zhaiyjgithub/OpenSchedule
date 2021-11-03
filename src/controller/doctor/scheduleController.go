@@ -64,7 +64,7 @@ func (c *ScheduleController) AddClosedDateSettings()  {
 func (c *ScheduleController) DeleteClosedDateSettings()  {
 	type Param struct {
 		Npi int64 `json:"npi" validate:"gt=0"`
-		Sid int `json:"id"`
+		Sid int `json:"sid"`
 	}
 	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {

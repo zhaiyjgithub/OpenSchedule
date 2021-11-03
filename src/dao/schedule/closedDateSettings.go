@@ -36,7 +36,7 @@ func (d *Dao) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
 func (d *Dao) GetClosedDateByDateTime(npi int64, t time.Time) (*doctor.ClosedDateSettings, error) {
 	ft := t.Format(constant.YYYY_MM_DD_HH_mm_SS)
 	st := &doctor.ClosedDateSettings{}
-	db := d.engine.Where("npi = ? and start_date <= ? and end_date > ?", npi, ft, ft).First(st)
+	db := d.engine.Where("npi = ? and start_date <= ? and end_date >= ?", npi, ft, ft).First(st)
 	if db.Error != nil {
 		return nil, db.Error
 	}
