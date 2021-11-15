@@ -62,12 +62,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 		weekDay := nextTime.Weekday()
 		closedDateSettings, _ := d.GetClosedDateByDateTime(settings.Npi, nextTime)
 		if weekDay == time.Sunday && (settings.SundayAmIsEnable || settings.SundayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.SundayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.SundayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.SundayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.SundayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.SundayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -75,12 +75,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.SundayAmAppointmentType,  settings.SundayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.SundayPmAppointmentType, settings.SundayPmIsEnable, pmStartDateTime, pmEndDateTime, duration, number, closedDateSettings)
 		}else if weekDay == time.Monday && (settings.MondayAmIsEnable || settings.MondayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.MondayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.MondayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.MondayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.MondayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.MondayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -88,12 +88,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.MondayAmAppointmentType,  settings.MondayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.MondayPmAppointmentType, settings.MondayPmIsEnable, pmStartDateTime, pmEndDateTime, duration, number, closedDateSettings)
 		}else if weekDay == time.Tuesday && (settings.TuesdayAmIsEnable || settings.TuesdayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.TuesdayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.TuesdayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.TuesdayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.TuesdayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.TuesdayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -101,12 +101,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.TuesdayAmAppointmentType,  settings.TuesdayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.TuesdayPmAppointmentType, settings.TuesdayPmIsEnable, pmStartDateTime, pmEndDateTime,duration, number, closedDateSettings)
 		}else if weekDay == time.Wednesday && (settings.WednesdayAmIsEnable || settings.WednesdayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.WednesdayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.WednesdayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.WednesdayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.WednesdayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.WednesdayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -114,12 +114,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.WednesdayAmAppointmentType,  settings.WednesdayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.WednesdayPmAppointmentType, settings.WednesdayPmIsEnable, pmStartDateTime, pmEndDateTime, duration, number, closedDateSettings)
 		}else if weekDay == time.Thursday && (settings.ThursdayAmIsEnable || settings.ThursdayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.ThursdayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.ThursdayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.ThursdayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.ThursdayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.ThursdayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -127,12 +127,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.ThursdayAmAppointmentType,  settings.ThursdayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.ThursdayPmAppointmentType, settings.ThursdayPmIsEnable, pmStartDateTime, pmEndDateTime, duration, number, closedDateSettings)
 		}else if weekDay == time.Friday && (settings.FridayAmIsEnable || settings.FridayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.FridayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.FridayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.FridayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.FridayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.FridayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -140,12 +140,12 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.FridayAmAppointmentType,  settings.FridayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.FridayPmAppointmentType, settings.FridayPmIsEnable, pmStartDateTime, pmEndDateTime, duration, number, closedDateSettings)
 		}else if weekDay == time.Saturday && (settings.SaturdayAmIsEnable || settings.SaturdayPmIsEnable) {
-			amStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.SaturdayAmStartTime)
+			amStartDateTime, err := d.ConvertScheduleTimeOffsetToDateTime(currentTime, settings.SaturdayAmStartTimeOffset)
 			if err != nil {
 				return ""
 			}
 			amEndDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.SaturdayAmEndTimeOffset))
-			pmStartDateTime, err := d.ConvertScheduleTimeToTime(currentTime, settings.SaturdayPmStartTime)
+			pmStartDateTime := amStartDateTime.Add(time.Minute * time.Duration(settings.SaturdayPmStartTimeOffset))
 			if err != nil {
 				return ""
 			}
@@ -229,18 +229,11 @@ func (d *Dao)ParseScheduleTimeToUTC(t time.Time, scheduleTime string, isAM bool)
 	return &utcTime, nil
 }
 
-func (d *Dao) ConvertScheduleTimeToTime(t time.Time, scheduleTime string) (time.Time, error) {
-	if !utils.CheckDateTime(scheduleTime) {
-		return constant.DefaultTimeStamp, errors.New("param error")
-	}
+func (d *Dao) ConvertScheduleTimeOffsetToDateTime(t time.Time, offset int) (time.Time, error) {
 	year := t.Year()
 	month := t.Month()
 	day := t.Day()
-
-	dateTime := strings.Split(scheduleTime, ":")
-	hour, _ := strconv.Atoi(dateTime[0])
-	min, _ := strconv.Atoi(dateTime[1])
-	utcTime := time.Date(year, month, day, hour, min, 0, 0, time.UTC)
+	utcTime := time.Date(year, month, day, 0, 0, 0, 0, time.UTC).Add(time.Minute * time.Duration(offset))
 	return utcTime, nil
 }
 

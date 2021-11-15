@@ -72,7 +72,7 @@ func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDate(t *testing.T) {
-	currentTime := time.Date(2021, 10, 28, 11, 36, 0, 0, time.UTC)
+	currentTime := time.Now()//time.Date(2021, 10, 28, 11, 36, 0, 0, time.UTC)
 	st := dao.GetScheduleSettings(testNpi)
 	nextAvailableDate := dao.CalcNextAvailableDate(currentTime, constant.InClinic, st)
 	if len(nextAvailableDate) == 0 {
@@ -119,7 +119,7 @@ func TestDao_AddClosedDate(t *testing.T) {
 
 func TestDao_DeleteClosedDate(t *testing.T) {
 	id := 1
-	err := dao.DeleteClosedDate(id)
+	err := dao.DeleteClosedDateByID(testNpi, id)
 	if err != nil {
 		t.Errorf("delete closed date setting failed")
 	}
