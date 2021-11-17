@@ -14,23 +14,23 @@ var dao = NewDao(database.GetMySqlEngine(), database.GetElasticSearchEngine())
 var testNpi = int64(1902809254)
 
 func TestDao_SetScheduleSettings(t *testing.T) {
-	settings := new(doctor.ScheduleSettings)
-	settings.Npi = testNpi
-	settings.NumberPerSlot = 1
-	settings.DurationPerSlot = 15
-	settings.ThursdayAmIsEnable = true
-	settings.ThursdayAmAppointmentType = constant.InClinic
-	settings.ThursdayAmStartTime = "08:00"
-	settings.ThursdayAmEndTimeOffset = 240
-
-	settings.ThursdayPmIsEnable = true
-	settings.ThursdayPmAppointmentType = constant.InClinic
-	settings.ThursdayPmStartTime = "13:00"
-	settings.ThursdayPmEndTimeOffset = 240
-	err := dao.SetScheduleSettings(settings)
-	if err != nil {
-		t.Errorf("test failed")
-	}
+	//settings := new(doctor.ScheduleSettings)
+	//settings.Npi = testNpi
+	//settings.NumberPerSlot = 1
+	//settings.DurationPerSlot = 15
+	//settings.ThursdayAmIsEnable = true
+	//settings.ThursdayAmAppointmentType = constant.InClinic
+	//settings.ThursdayAmStartTime = "08:00"
+	//settings.ThursdayAmEndTimeOffset = 240
+	//
+	//settings.ThursdayPmIsEnable = true
+	//settings.ThursdayPmAppointmentType = constant.InClinic
+	//settings.ThursdayPmStartTime = "13:00"
+	//settings.ThursdayPmEndTimeOffset = 240
+	//err := dao.SetScheduleSettings(settings)
+	//if err != nil {
+	//	t.Errorf("test failed")
+	//}
 }
 
 func TestDao_ParseScheduleTimeToUTC(t *testing.T) {
@@ -72,9 +72,9 @@ func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
 }
 
 func TestDao_CalcNextAvailableDate(t *testing.T) {
-	currentTime := time.Now()//time.Date(2021, 10, 28, 11, 36, 0, 0, time.UTC)
+	currentTime := time.Now().UTC()//time.Date(2021, 10, 28, 11, 36, 0, 0, time.UTC)
 	st := dao.GetScheduleSettings(testNpi)
-	nextAvailableDate := dao.CalcNextAvailableDate(currentTime, constant.InClinic, st)
+	nextAvailableDate := dao.CalcNextAvailableDate(currentTime, constant.Virtual, st)
 	if len(nextAvailableDate) == 0 {
 		t.Errorf("calc failed")
 	}
