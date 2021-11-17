@@ -31,6 +31,9 @@ func (c *ScheduleController) SetScheduleSettings()  {
 	}
 	err := c.ScheduleService.SetScheduleSettings(&p)
 	if err != nil {
+		err = c.ScheduleService.SyncCertainDoctorScheduleNextAvailableDateToES(&p)
+	}
+	if err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(),nil)
 	}else {
 		response.Success(c.Ctx, response.Successful, nil)

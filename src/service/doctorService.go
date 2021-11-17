@@ -4,6 +4,7 @@ import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/dao"
 	"OpenSchedule/src/database"
+	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/model/viewModel"
 )
 
@@ -21,17 +22,18 @@ type DoctorService interface {
 		page int,
 		pageSize int,
 		sortType constant.SortType, distance int) []*viewModel.DoctorInfo
+	GetDoctorByPage(page int, pageSize int) []*doctor.Doctor
 }
 
-type newDoctorService struct {
+type doctorService struct {
 	dao *dao.DoctorDao
 }
 
 func NewDoctorService() DoctorService  {
-	return &newDoctorService{dao: dao.NewDoctorDao(database.GetElasticSearchEngine())}
+	return &doctorService{dao: dao.NewDoctorDao(database.GetElasticSearchEngine(), database.GetMySqlEngine())}
 }
 
-func (s *newDoctorService) SearchDoctor(keyword string,
+func (s *doctorService) SearchDoctor(keyword string,
 	isInClinicEnable bool,
 	isVirtualEnable bool,
 	appointmentType constant.AppointmentType,
@@ -55,4 +57,8 @@ func (s *newDoctorService) SearchDoctor(keyword string,
 		gender,
 		page,
 		pageSize, sortType, distance)
+}
+
+func (s *doctorService) GetDoctorByPage(page int, pageSize int) []*doctor.Doctor {
+	return s.dao.GetDoctorByPage(page, pageSize)
 }

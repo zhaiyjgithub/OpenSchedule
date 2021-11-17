@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"OpenSchedule/src/constant"
+	dao2 "OpenSchedule/src/dao"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 )
 
 var dao = NewDao(database.GetMySqlEngine(), database.GetElasticSearchEngine())
+var doctorDao = dao2.NewDoctorDao(database.GetElasticSearchEngine(), database.GetMySqlEngine())
 
 var testNpi = int64(1902809254)
 
@@ -176,4 +178,28 @@ func TestDao_GetClosedDate(t *testing.T) {
 
 	c := make([]doctor.ClosedDateSettings, 0)
 	println(c == nil)
+}
+
+func TestDao_GetDuplicateDoctorInfoFromES(t *testing.T) {
+	//clear the database
+
+	page := 1
+	pageSize := 500
+	count := 0
+	for ;; {
+		doctors := doctorDao.GetDoctorByPage(page, pageSize)
+		for _, doc := range doctors {
+			ids := dao.GetDuplicateDoctorInfoFromES(doc.Npi)
+			if len(ids) == 2 {
+				count = count + 1
+				fmt.Println(doc.Npi, ids)
+				//err := dao.DeleteESDoctorById(ids[1])
+				//if err != nil {
+				//	fmt.Println(err.Error())
+				//}
+			}
+		}
+		time.Sleep(time.Millisecond * 500)
+	}
+
 }

@@ -2,11 +2,13 @@ package dao
 import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/database"
+	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/model/viewModel"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/olivere/elastic/v7"
+	"gorm.io/gorm"
 	"log"
 	"reflect"
 )
@@ -18,10 +20,11 @@ type ScriptLocation struct {
 
 type DoctorDao struct {
 	elasticSearchEngine *elastic.Client
+	mainEngine *gorm.DB
 }
 
-func NewDoctorDao(engine *elastic.Client) *DoctorDao  {
-	return &DoctorDao{elasticSearchEngine: engine}
+func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *DoctorDao  {
+	return &DoctorDao{elasticSearchEngine: engine, mainEngine: mainEngine}
 }
 
 func (d *DoctorDao) SearchDoctor(keyword string,
@@ -193,4 +196,10 @@ func (d *DoctorDao)searchByDefault(lat float64, lon float64, q elastic.Query, pa
 		fmt.Println(doc.FullName)
 	}
 	return docs
+}
+
+func (d *DoctorDao) GetDoctorByPage(page int , pageSize int) []*doctor.Doctor {
+	var doctors []*doctor.Doctor
+	_ = d.mainEngine.Limit(pageSize).Offset(pageSize*(page - 1)).Find(&doctors)
+	return doctors
 }

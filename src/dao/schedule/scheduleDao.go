@@ -29,6 +29,10 @@ func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64,
 	isOnlineScheduleEnable bool, isInClinicBookEnable bool, isVirtualBookEnable bool,
 	nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
 	esId := d.GetDoctorInfoFromES(npi)
+	if len(esId) == 0 {
+		errs := fmt.Sprintf("esid is empty: %d", npi)
+		return errors.New(errs)
+	}
 	req := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
 		IsOnlineScheduleEnable bool
 		IsInClinicBookEnable bool
@@ -46,6 +50,41 @@ func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64,
 	return err
 }
 
+func (d *Dao) GetESBulkUpdateRequest(npi int64,
+	isOnlineScheduleEnable bool, isInClinicBookEnable bool, isVirtualBookEnable bool,
+	nextAvailableDateInClinic string, nextAvailableDateVirtual string) (error, *elastic.BulkUpdateRequest) {
+	esId := d.GetDoctorInfoFromES(npi)
+	if len(esId) == 0 {
+		errs := fmt.Sprintf("esid is empty: %d", npi)
+		return errors.New(errs), nil
+	}
+
+	req := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
+		IsOnlineScheduleEnable bool
+		IsInClinicBookEnable bool
+		IsVirtualBookEnable bool
+		NextAvailableDateInClinic string
+		NextAvailableDateVirtual string
+	}{
+		IsOnlineScheduleEnable: isOnlineScheduleEnable,
+		IsInClinicBookEnable: isInClinicBookEnable,
+		IsVirtualBookEnable: isVirtualBookEnable,
+		NextAvailableDateInClinic: nextAvailableDateInClinic,
+		NextAvailableDateVirtual: nextAvailableDateVirtual,
+	})
+	return nil, req
+}
+
+func (d *Dao) BulkUpdateToES(reqs []*elastic.BulkUpdateRequest) error {
+	bulkService := d.elasticSearchEngine.Bulk()
+	for _, req := range reqs {
+		bulkService.Add(req)
+	}
+	_, err := bulkService.Do(context.TODO())
+	return err
+}
+
+
 func (d *Dao) GetDoctorInfoFromES(npi int64) string {
 	q := elastic.NewTermQuery("Npi", npi)
 	result, err := d.elasticSearchEngine.Search().Index(database.DoctorIndexName).
@@ -60,6 +99,32 @@ func (d *Dao) GetDoctorInfoFromES(npi int64) string {
 	}
 	return esId
 }
+
+func (d *Dao) DeleteESDoctorById(esId string) error {
+	if len(esId) == 0 {
+		errs := fmt.Sprintf("esid is empty")
+		return errors.New(errs)
+	}
+	req := elastic.NewBulkDeleteRequest().Index(database.DoctorIndexName).Id(esId)
+	_, err := d.elasticSearchEngine.Bulk().Add(req).Do(context.TODO())
+	return err
+}
+
+func (d *Dao) GetDuplicateDoctorInfoFromES(npi int64) []string {
+	q := elastic.NewTermQuery("Npi", npi)
+	result, err := d.elasticSearchEngine.Search().Index(database.DoctorIndexName).
+		Size(2).Query(q).Pretty(true).Do(context.Background())
+	var esIds []string
+	if err != nil {
+		fmt.Println("search failed")
+		return esIds
+	}
+	for _, hit := range result.Hits.Hits {
+		esIds = append(esIds, hit.Id)
+	}
+	return esIds
+}
+
 
 func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings *doctor.ScheduleSettings) (string)  {
 	duration := settings.DurationPerSlot

@@ -5,6 +5,9 @@ import (
 	"OpenSchedule/src/dao/schedule"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
+	"errors"
+	"fmt"
+	"github.com/olivere/elastic/v7"
 	"time"
 )
 
@@ -14,6 +17,8 @@ type Service interface {
 	AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error
 	DeleteClosedDate(npi int64, id int) error
 	GetClosedDate(npi int64) []doctor.ClosedDateSettings
+	SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error
+	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
 }
 
 func NewService() Service {
@@ -25,20 +30,17 @@ type service struct {
 }
 
 func (s *service) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
-	err := s.dao.SetScheduleSettings(setting)
-	if err != nil {
-		return err
-	}
-	//begin to sync the certain doctor next available date.
-	err = s.SyncCertainDoctorScheduleNextAvailableDateToES(setting)
-	return err
+	return s.dao.SetScheduleSettings(setting)
 }
 
 func (s *service) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 	return s.dao.GetScheduleSettings(npi)
 }
 
-func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error  {
+func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error {
+	if settings == nil {
+		return errors.New("param is nil")
+	}
 	currentTime := time.Now().UTC()
 	nextAvailableDateInClinic := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, settings)
 	nextAvailableDateVirtual := s.dao.CalcNextAvailableDate(currentTime, constant.Virtual, settings)
@@ -47,10 +49,39 @@ func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings *docto
 	isVirtualBookEnable := nextAvailableDateVirtual != constant.InvalidDateTime
 	isOnlineScheduleEnable := isInClinicBookEnable || isVirtualBookEnable
 
-	err := s.dao.SyncCertainDoctorNextAvailableDateToES(settings.Npi,
+	return s.dao.SyncCertainDoctorNextAvailableDateToES(settings.Npi,
 		isOnlineScheduleEnable, isInClinicBookEnable, isVirtualBookEnable,
 		nextAvailableDateInClinic, nextAvailableDateVirtual)
-	return err
+}
+
+func (s *service) SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error {
+	var reqs []*elastic.BulkUpdateRequest
+	for _, doc := range doctors {
+		settings := s.GetScheduleSettings(doc.Npi)
+		if settings == nil {
+			fmt.Println("settings not found: ", doc.Npi)
+			continue
+		}
+		currentTime := time.Now().UTC()
+		nextAvailableDateInClinic := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, settings)
+		nextAvailableDateVirtual := s.dao.CalcNextAvailableDate(currentTime, constant.Virtual, settings)
+
+		isInClinicBookEnable := nextAvailableDateInClinic != constant.InvalidDateTime
+		isVirtualBookEnable := nextAvailableDateVirtual != constant.InvalidDateTime
+		isOnlineScheduleEnable := isInClinicBookEnable || isVirtualBookEnable
+
+		err, req := s.dao.GetESBulkUpdateRequest(settings.Npi,
+			isOnlineScheduleEnable, isInClinicBookEnable, isVirtualBookEnable,
+			nextAvailableDateInClinic, nextAvailableDateVirtual)
+		if err != nil {
+			fmt.Println("sync multi doctor error: ", err.Error(), doc.Npi)
+		}
+		if req != nil {
+			reqs = append(reqs, req)
+		}
+	}
+
+	return s.dao.BulkUpdateToES(reqs)
 }
 
 func (s *service) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error  {

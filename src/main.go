@@ -4,6 +4,7 @@ package main
 
 import (
 	"OpenSchedule/src/controller/doctor"
+	"OpenSchedule/src/controller/job"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/router"
 	"OpenSchedule/src/service"
@@ -17,10 +18,30 @@ func main()  {
 	fmt.Println("Hello, AnyHealth.")
 	database.SetupElasticSearchEngine()
 
+	doOnceSyncSettings()
+	addJobWorker()
+
 	app := iris.New()
 	configureAnyHealthService(app)
 	_ = app.Run(iris.Addr(":8090"), iris.WithPostMaxMemory(32<<20)) //max = 32M
 
+
+}
+
+func doOnceSyncSettings()  {
+	doctorService := service.NewDoctorService()
+	scheduleService := schedule.NewService()
+	j := job.NewJob()
+	j.RegisterService(doctorService, scheduleService)
+	j.SyncDefaultScheduleSettingsToAllDoctor()
+}
+
+func addJobWorker()  {
+	doctorService := service.NewDoctorService()
+	scheduleService := schedule.NewService()
+	j := job.NewJob()
+	j.RegisterService(doctorService, scheduleService)
+	j.SyncDoctorsNextAvailableDate()
 }
 
 func configureAnyHealthService(app *iris.Application)  {
