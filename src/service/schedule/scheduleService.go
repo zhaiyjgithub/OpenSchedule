@@ -5,7 +5,6 @@ import (
 	"OpenSchedule/src/dao/schedule"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
-	"errors"
 	"time"
 )
 
@@ -39,19 +38,18 @@ func (s *service) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 	return s.dao.GetScheduleSettings(npi)
 }
 
-func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(setting *doctor.ScheduleSettings) error  {
-	//get the next available date
-	//begin to update the es for certain doctor
+func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error  {
 	currentTime := time.Now().UTC()
-	nextAvailableDateInClinic := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, setting)
-	if len(nextAvailableDateInClinic) == 0 {
-		return errors.New("calc nextAvailable Date in clinic failed")
-	}
-	nextAvailableDateVirtual := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, setting)
-	if len(nextAvailableDateInClinic) == 0 {
-		return errors.New("calc nextAvailable date virtual failed")
-	}
-	err := s.dao.SyncCertainDoctorNextAvailableDateToES(setting.Npi, nextAvailableDateInClinic, nextAvailableDateVirtual)
+	nextAvailableDateInClinic := s.dao.CalcNextAvailableDate(currentTime, constant.InClinic, settings)
+	nextAvailableDateVirtual := s.dao.CalcNextAvailableDate(currentTime, constant.Virtual, settings)
+
+	isInClinicBookEnable := nextAvailableDateInClinic != constant.InvalidDateTime
+	isVirtualBookEnable := nextAvailableDateVirtual != constant.InvalidDateTime
+	isOnlineScheduleEnable := isInClinicBookEnable || isVirtualBookEnable
+
+	err := s.dao.SyncCertainDoctorNextAvailableDateToES(settings.Npi,
+		isOnlineScheduleEnable, isInClinicBookEnable, isVirtualBookEnable,
+		nextAvailableDateInClinic, nextAvailableDateVirtual)
 	return err
 }
 

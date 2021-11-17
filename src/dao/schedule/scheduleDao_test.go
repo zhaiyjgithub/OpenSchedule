@@ -46,7 +46,7 @@ func TestDao_MatchDateTimeByDuration(t *testing.T) {
 	startTime := time.Date(2021, 10, 8, 9, 0, 0, 0, time.UTC)
 	currentTime := time.Date(2021, 10, 8, 9, 42, 0, 0, time.UTC)
 	nextAvailableDate := dao.MatchDateTimeByDuration(currentTime, startTime, 15)
-	if len(nextAvailableDate) == 0 {
+	if nextAvailableDate == constant.InvalidDateTime {
 		t.Errorf("test failed")
 	}
 	fmt.Println(nextAvailableDate)
@@ -65,7 +65,7 @@ func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
 
 	nextAvailableDate := dao.CalcNextAvailableDateForEachWeekDay(currentTime, constant.InClinic, constant.InClinic, true, amStartDateTime,
 			amEndDateTime, constant.InClinic, true, pmStartDateTime, pmEndDateTime, 15, 1, closedDate)
-	if len(nextAvailableDate) == 0 {
+	if nextAvailableDate == constant.InvalidDateTime {
 		t.Errorf("CalcNextAvailableDateForEachWeekDay failed")
 	}
 	fmt.Println(nextAvailableDate)
@@ -75,14 +75,14 @@ func TestDao_CalcNextAvailableDate(t *testing.T) {
 	currentTime := time.Now().UTC()//time.Date(2021, 10, 28, 11, 36, 0, 0, time.UTC)
 	st := dao.GetScheduleSettings(testNpi)
 	nextAvailableDate := dao.CalcNextAvailableDate(currentTime, constant.Virtual, st)
-	if len(nextAvailableDate) == 0 {
+	if nextAvailableDate == constant.InvalidDateTime {
 		t.Errorf("calc failed")
 	}
 	fmt.Println(nextAvailableDate)
 }
 
 func TestDao_GetDoctorInfoFromES(t *testing.T) {
-	id := dao.GetDoctorInfoFromES(1619970365)
+	id := dao.GetDoctorInfoFromES(testNpi)
 	if len(id) == 0 {
 		t.Errorf("get fail")
 	}
@@ -90,8 +90,19 @@ func TestDao_GetDoctorInfoFromES(t *testing.T) {
 }
 
 func TestDao_SyncCertainDoctorNextAvailableDateToES(t *testing.T) {
-	currentTime := time.Now().UTC().Format(time.RFC3339)
-	err := dao.SyncCertainDoctorNextAvailableDateToES(testNpi, currentTime, currentTime)
+	currentTime := time.Now().UTC()
+	settings := dao.GetScheduleSettings(testNpi)
+
+	nextAvailableDateInClinic := dao.CalcNextAvailableDate(currentTime, constant.InClinic, settings)
+	nextAvailableDateVirtual := dao.CalcNextAvailableDate(currentTime, constant.Virtual, settings)
+
+	isInClinicBookEnable := nextAvailableDateInClinic != constant.InvalidDateTime
+	isVirtualBookEnable := nextAvailableDateVirtual != constant.InvalidDateTime
+	isOnlineScheduleEnable := isInClinicBookEnable || isVirtualBookEnable
+
+	err := dao.SyncCertainDoctorNextAvailableDateToES(testNpi,
+		isOnlineScheduleEnable, isInClinicBookEnable, isVirtualBookEnable,
+		nextAvailableDateInClinic, nextAvailableDateVirtual)
 	if err != nil {
 		t.Errorf("sync failed")
 	}

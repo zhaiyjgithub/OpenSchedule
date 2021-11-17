@@ -25,12 +25,20 @@ func NewDao(engine *gorm.DB, elasticSearchEngine *elastic.Client) *Dao {
 }
 
 
-func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64, nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
+func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64,
+	isOnlineScheduleEnable bool, isInClinicBookEnable bool, isVirtualBookEnable bool,
+	nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
 	esId := d.GetDoctorInfoFromES(npi)
 	req := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
+		IsOnlineScheduleEnable bool
+		IsInClinicBookEnable bool
+		IsVirtualBookEnable bool
 		NextAvailableDateInClinic string
 		NextAvailableDateVirtual string
 	}{
+		IsOnlineScheduleEnable: isOnlineScheduleEnable,
+		IsInClinicBookEnable: isInClinicBookEnable,
+		IsVirtualBookEnable: isVirtualBookEnable,
 		NextAvailableDateInClinic: nextAvailableDateInClinic,
 		NextAvailableDateVirtual: nextAvailableDateVirtual,
 	})
@@ -153,7 +161,7 @@ func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType const
 			nextAvailableDate = d.CalcNextAvailableDateForEachWeekDay(currentTime, appointmentType, settings.SaturdayAmAppointmentType,  settings.SaturdayAmIsEnable, amStartDateTime, amEndDateTime,
 				settings.SaturdayPmAppointmentType, settings.SaturdayPmIsEnable, pmStartDateTime, pmEndDateTime, duration, number, closedDateSettings)
 		}
-		if len(nextAvailableDate) > 0 {
+		if nextAvailableDate != constant.InvalidDateTime {
 			break
 		}
 	}
@@ -194,7 +202,7 @@ func (d *Dao) CalcNextAvailableDateForEachWeekDay(currentTime time.Time, appoint
 		nextAvailableDateTime := d.MatchDateTimeByDuration(currentTime, *pmStartTime, durationOfSlot)
 		return nextAvailableDateTime
 	}
-	return ""
+	return constant.InvalidDateTime
 }
 
 func (d *Dao) MatchDateTimeByDuration(now time.Time, startTime time.Time, durationOfSlot int) string {
