@@ -17,20 +17,10 @@ import (
 func main()  {
 	fmt.Println("Hello, AnyHealth.")
 	database.SetupElasticSearchEngine()
-	//addJobWorker()
-	Clean()
+	addJobWorker()
 	app := iris.New()
 	configureAnyHealthService(app)
 	_ = app.Run(iris.Addr(":8090"), iris.WithPostMaxMemory(32<<20)) //max = 32M
-}
-
-func Clean()  {
-	//SyncDefaultScheduleSettingsToAllDoctor
-	doctorService := doctorService.NewService()
-	scheduleService := scheduleService.NewService()
-	j := job.NewJob()
-	j.RegisterService(doctorService, scheduleService)
-	j.SyncDefaultScheduleSettingsToAllDoctor()
 }
 
 func addJobWorker()  {

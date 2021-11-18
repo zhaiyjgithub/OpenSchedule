@@ -5,7 +5,6 @@
 package job
 
 import (
-	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/service/doctorService"
 	"OpenSchedule/src/service/scheduleService"
 	"fmt"
@@ -59,7 +58,6 @@ func (j *SyncScheduleJob) SyncDoctorsNextAvailableDate()  {
 		if err != nil {
 			fmt.Println("bulk update error: ", err)
 		}
-
 		fmt.Println("page : ", page)
 		page = page + 1
 		if len(doctors) < pageSize {
@@ -78,21 +76,12 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 	testNpi := int64(1902809254)
 	defaultSettings := j.scheduleService.GetScheduleSettings(testNpi)
 	page := 1
-	pageSize := 2000
+	pageSize := 100
 
-	count := 0
 	fmt.Println("begin to sync", time.Now().UTC().Format(time.RFC3339))
 	for ;; {
 		doctors := j.doctorService.GetDoctorByPage(page, pageSize)
-		var notCreatedDoctors []*doctor.Doctor
 		for _, doc := range doctors {
-			isExist := j.scheduleService.IsExist(doc.Npi)
-			if !isExist {
-				notCreatedDoctors = append(notCreatedDoctors, doc)
-			}
-		}
-
-		for _, doc := range notCreatedDoctors {
 			defaultSettings.ID = 0
 			defaultSettings.Npi = doc.Npi
 			err := j.scheduleService.SetScheduleSettings(defaultSettings)
@@ -100,7 +89,6 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 				fmt.Println("save schedule settings err: ", err.Error())
 			}
 		}
-		count = count + len(notCreatedDoctors)
 		fmt.Println("page : ", page)
 		page = page + 1
 		if len(doctors) < pageSize {
@@ -108,5 +96,5 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 			break
 		}
 	}
-	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339), "page: ", page, "count: ", count)
+	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339), "page: ", page)
 }
