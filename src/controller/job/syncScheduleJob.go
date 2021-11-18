@@ -5,7 +5,7 @@
 package job
 
 import (
-	"OpenSchedule/src/service"
+	"OpenSchedule/src/service/doctor"
 	"OpenSchedule/src/service/schedule"
 	"fmt"
 	"github.com/go-co-op/gocron"
@@ -15,7 +15,7 @@ import (
 const Len = 100
 
 type SyncScheduleJob struct {
-	doctorService service.DoctorService
+	doctorService   doctor.DoctorService
 	scheduleService schedule.Service
 }
 
@@ -23,7 +23,7 @@ func NewJob() *SyncScheduleJob {
 	return &SyncScheduleJob{}
 }
 
-func (j *SyncScheduleJob)RegisterService(doctorService service.DoctorService, scheduleService schedule.Service)  {
+func (j *SyncScheduleJob)RegisterService(doctorService doctor.DoctorService, scheduleService schedule.Service)  {
 	j.doctorService = doctorService
 	j.scheduleService = scheduleService
 }
@@ -39,16 +39,19 @@ func (j *SyncScheduleJob) Test()  {
 	s.StartAsync()
 }
 
-func (j *SyncScheduleJob)StartToSyncByBlocking()  {
+func (j *SyncScheduleJob) StartToSyncDoctorNextAvailableDateAsync()  {
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(1).Days().At("16:00").Do(j.SyncDoctorsNextAvailableDate)
 	s.StartAsync()
+	fmt.Println("Set the scheduler to sync the next available date for all doctors. ")
 }
 
 func (j *SyncScheduleJob) SyncDoctorsNextAvailableDate()  {
 	page := 1
 	pageSize := 100
-	fmt.Println("begin to sync", time.Now().UTC().Format(time.RFC3339))
+
+	startTime := time.Now().UTC()
+	fmt.Println("Start to Sync Doctors Next Available Date", startTime.Format(time.RFC3339))
 	for ;; {
 		doctors := j.doctorService.GetDoctorByPage(page, pageSize)
 		err := j.scheduleService.SyncMultiDoctorsScheduleNextAvailableDateToES(doctors)
@@ -62,7 +65,11 @@ func (j *SyncScheduleJob) SyncDoctorsNextAvailableDate()  {
 			break
 		}
 	}
-	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339))
+	endTime := time.Now().UTC()
+	fmt.Println("End the sync process", endTime.Format(time.RFC3339))
+
+	duration := endTime.Sub(startTime)
+	fmt.Println("Duration: ", duration)
 }
 
 func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
@@ -89,5 +96,5 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 			break
 		}
 	}
-	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339))
+	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339), "page: ", page)
 }

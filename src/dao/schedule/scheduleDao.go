@@ -24,16 +24,10 @@ func NewDao(engine *gorm.DB, elasticSearchEngine *elastic.Client) *Dao {
 	return &Dao{engine: engine, elasticSearchEngine: elasticSearchEngine}
 }
 
-
-func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64,
+func (d *Dao) NewBulkUpdateRequest(esId string,
 	isOnlineScheduleEnable bool, isInClinicBookEnable bool, isVirtualBookEnable bool,
-	nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
-	esId := d.GetDoctorInfoFromES(npi)
-	if len(esId) == 0 {
-		errs := fmt.Sprintf("esid is empty: %d", npi)
-		return errors.New(errs)
-	}
-	req := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
+	nextAvailableDateInClinic string, nextAvailableDateVirtual string) *elastic.BulkUpdateRequest {
+	return elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
 		IsOnlineScheduleEnable bool
 		IsInClinicBookEnable bool
 		IsVirtualBookEnable bool
@@ -46,6 +40,19 @@ func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64,
 		NextAvailableDateInClinic: nextAvailableDateInClinic,
 		NextAvailableDateVirtual: nextAvailableDateVirtual,
 	})
+}
+
+func (d *Dao) SyncCertainDoctorNextAvailableDateToES(npi int64,
+	isOnlineScheduleEnable bool, isInClinicBookEnable bool, isVirtualBookEnable bool,
+	nextAvailableDateInClinic string, nextAvailableDateVirtual string) error {
+	esId := d.GetDoctorInfoFromES(npi)
+	if len(esId) == 0 {
+		errs := fmt.Sprintf("esid is empty: %d", npi)
+		return errors.New(errs)
+	}
+	req := d.NewBulkUpdateRequest(esId,
+		isOnlineScheduleEnable, isInClinicBookEnable, isVirtualBookEnable,
+		nextAvailableDateInClinic, nextAvailableDateVirtual)
 	_, err := d.elasticSearchEngine.Bulk().Add(req).Do(context.TODO())
 	return err
 }
@@ -58,20 +65,9 @@ func (d *Dao) GetESBulkUpdateRequest(npi int64,
 		errs := fmt.Sprintf("esid is empty: %d", npi)
 		return errors.New(errs), nil
 	}
-
-	req := elastic.NewBulkUpdateRequest().Index(database.DoctorIndexName).Id(esId).Doc(struct {
-		IsOnlineScheduleEnable bool
-		IsInClinicBookEnable bool
-		IsVirtualBookEnable bool
-		NextAvailableDateInClinic string
-		NextAvailableDateVirtual string
-	}{
-		IsOnlineScheduleEnable: isOnlineScheduleEnable,
-		IsInClinicBookEnable: isInClinicBookEnable,
-		IsVirtualBookEnable: isVirtualBookEnable,
-		NextAvailableDateInClinic: nextAvailableDateInClinic,
-		NextAvailableDateVirtual: nextAvailableDateVirtual,
-	})
+	req := d.NewBulkUpdateRequest(esId,
+		isOnlineScheduleEnable, isInClinicBookEnable, isVirtualBookEnable,
+	nextAvailableDateInClinic, nextAvailableDateVirtual)
 	return nil, req
 }
 
@@ -83,7 +79,6 @@ func (d *Dao) BulkUpdateToES(reqs []*elastic.BulkUpdateRequest) error {
 	_, err := bulkService.Do(context.TODO())
 	return err
 }
-
 
 func (d *Dao) GetDoctorInfoFromES(npi int64) string {
 	q := elastic.NewTermQuery("Npi", npi)
@@ -124,7 +119,6 @@ func (d *Dao) GetDuplicateDoctorInfoFromES(npi int64) []string {
 	}
 	return esIds
 }
-
 
 func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings *doctor.ScheduleSettings) (string)  {
 	duration := settings.DurationPerSlot
@@ -315,7 +309,6 @@ func (d *Dao) CalcAvailableTimeRangeByClosedDate(currentDateTime time.Time, star
 	if closedStartDateTime.Equal(constant.DefaultTimeStamp) || closedEndDateTime.Equal(constant.DefaultTimeStamp) {
 		return nil, nil
 	}
-	
 	if (startDateTime.Equal(closedStartDateTime) || startDateTime.After(closedStartDateTime)) &&
 		(startDateTime.Equal(closedEndDateTime) || startDateTime.Before(closedEndDateTime)) &&
 		endDateTime.After(closedEndDateTime) {
@@ -338,41 +331,4 @@ func (d *Dao) CalcAvailableTimeRangeByClosedDate(currentDateTime time.Time, star
 	} else {
 		return nil, nil
 	}
-}
-
-func (d *Dao) ConvertHourMinToMinutes(dateTime string) (int, error) {
-	hour, min, err := d.ConvertDateTimeToHourMin(dateTime)
-	if err != nil {
-		return 0, err
-	}
-	return hour*60 + min, nil
-}
-
-func (d *Dao) ReverseMinutesToHourMin (minutes int) string {
-	hour := minutes/60
-	min := minutes%60
-	hourStr := ""
-	if hour < 10 {
-		hourStr = fmt.Sprintf("0%d", hour)
-	}else {
-		hourStr = fmt.Sprintf("%d", hour)
-	}
-	minStr := ""
-	if min < 10 {
-		minStr = fmt.Sprintf("0%d", min)
-	}else {
-		minStr = fmt.Sprintf("%d", min)
-	}
-	return fmt.Sprintf("%s:%s", hourStr, minStr)
-}
-
-func (d *Dao) ConvertDateTimeToHourMin(dateTime string) (int, int, error) {
-	if !utils.CheckDateTime(dateTime) {
-		errStr := fmt.Sprintf("param error: %s", dateTime)
-		return 0, 0, errors.New(errStr)
-	}
-	dateTimes := strings.Split(dateTime, ":")
-	hour, _ := strconv.Atoi(dateTimes[0])
-	min, _ := strconv.Atoi(dateTimes[1])
-	return hour, min, nil
 }

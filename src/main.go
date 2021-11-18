@@ -7,7 +7,7 @@ import (
 	"OpenSchedule/src/controller/job"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/router"
-	"OpenSchedule/src/service"
+	doctor2 "OpenSchedule/src/service/doctor"
 	"OpenSchedule/src/service/schedule"
 	"fmt"
 	"github.com/kataras/iris/v12"
@@ -17,31 +17,18 @@ import (
 func main()  {
 	fmt.Println("Hello, AnyHealth.")
 	database.SetupElasticSearchEngine()
-
-	doOnceSyncSettings()
 	addJobWorker()
-
 	app := iris.New()
 	configureAnyHealthService(app)
 	_ = app.Run(iris.Addr(":8090"), iris.WithPostMaxMemory(32<<20)) //max = 32M
-
-
-}
-
-func doOnceSyncSettings()  {
-	doctorService := service.NewDoctorService()
-	scheduleService := schedule.NewService()
-	j := job.NewJob()
-	j.RegisterService(doctorService, scheduleService)
-	j.SyncDefaultScheduleSettingsToAllDoctor()
 }
 
 func addJobWorker()  {
-	doctorService := service.NewDoctorService()
+	doctorService := doctor2.NewDoctorService()
 	scheduleService := schedule.NewService()
 	j := job.NewJob()
 	j.RegisterService(doctorService, scheduleService)
-	j.SyncDoctorsNextAvailableDate()
+	j.StartToSyncDoctorNextAvailableDateAsync()
 }
 
 func configureAnyHealthService(app *iris.Application)  {
@@ -50,7 +37,7 @@ func configureAnyHealthService(app *iris.Application)  {
 }
 
 func configureDoctorMVC(app *mvc.Application)  {
-	doctorService := service.NewDoctorService()
+	doctorService := doctor2.NewDoctorService()
 	app.Register(doctorService)
 	app.Handle(new(doctor.FindDoctorController))
 }

@@ -2,7 +2,7 @@ package schedule
 
 import (
 	"OpenSchedule/src/constant"
-	dao2 "OpenSchedule/src/dao"
+	dao2 "OpenSchedule/src/dao/doctor"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
 	"fmt"
@@ -135,13 +135,6 @@ func TestDao_DeleteClosedDate(t *testing.T) {
 	err := dao.DeleteClosedDateByID(testNpi, id)
 	if err != nil {
 		t.Errorf("delete closed date setting failed")
-	}
-}
-
-func TestDao_ReverseMinutesToHourMin(t *testing.T) {
-	time := dao.ReverseMinutesToHourMin(15)
-	if time != "00:15" {
-		t.Errorf("expected failed %s", time)
 	}
 }
 

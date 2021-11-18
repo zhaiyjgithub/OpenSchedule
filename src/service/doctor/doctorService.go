@@ -1,8 +1,8 @@
-package service
+package doctor
 
 import (
 	"OpenSchedule/src/constant"
-	"OpenSchedule/src/dao"
+	doctor2 "OpenSchedule/src/dao/doctor"
 	"OpenSchedule/src/database"
 	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/model/viewModel"
@@ -26,11 +26,11 @@ type DoctorService interface {
 }
 
 type doctorService struct {
-	dao *dao.DoctorDao
+	dao *doctor2.Dao
 }
 
-func NewDoctorService() DoctorService  {
-	return &doctorService{dao: dao.NewDoctorDao(database.GetElasticSearchEngine(), database.GetMySqlEngine())}
+func NewDoctorService() DoctorService {
+	return &doctorService{dao: doctor2.NewDoctorDao(database.GetElasticSearchEngine(), database.GetMySqlEngine())}
 }
 
 func (s *doctorService) SearchDoctor(keyword string,

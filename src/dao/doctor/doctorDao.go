@@ -1,4 +1,4 @@
-package dao
+package doctor
 import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/database"
@@ -18,16 +18,16 @@ type ScriptLocation struct {
 	Lon float64
 }
 
-type DoctorDao struct {
+type Dao struct {
 	elasticSearchEngine *elastic.Client
 	mainEngine *gorm.DB
 }
 
-func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *DoctorDao  {
-	return &DoctorDao{elasticSearchEngine: engine, mainEngine: mainEngine}
+func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *Dao {
+	return &Dao{elasticSearchEngine: engine, mainEngine: mainEngine}
 }
 
-func (d *DoctorDao) SearchDoctor(keyword string,
+func (d *Dao) SearchDoctor(keyword string,
 	IsInClinicBookEnable bool,
 	IsVirtualBookEnable bool,
 	appointmentType constant.AppointmentType,
@@ -98,7 +98,7 @@ func (d *DoctorDao) SearchDoctor(keyword string,
 	return docs
 }
 
-func (d *DoctorDao)searchByDistance(lat float64, lon float64, q elastic.Query, page int , pageSize int) []*viewModel.DoctorInfo {
+func (d *Dao)searchByDistance(lat float64, lon float64, q elastic.Query, page int , pageSize int) []*viewModel.DoctorInfo {
 	src, err := q.Source()
 	if err != nil {
 		log.Fatal(err)
@@ -147,7 +147,7 @@ func (d *DoctorDao)searchByDistance(lat float64, lon float64, q elastic.Query, p
 	return docs
 }
 
-func (d *DoctorDao)searchByDefault(lat float64, lon float64, q elastic.Query, page int , pageSize int) []*viewModel.DoctorInfo {
+func (d *Dao)searchByDefault(lat float64, lon float64, q elastic.Query, page int , pageSize int) []*viewModel.DoctorInfo {
 	sl := &ScriptLocation{
 		Lat: lat,
 		Lon: lon,
@@ -198,7 +198,7 @@ func (d *DoctorDao)searchByDefault(lat float64, lon float64, q elastic.Query, pa
 	return docs
 }
 
-func (d *DoctorDao) GetDoctorByPage(page int , pageSize int) []*doctor.Doctor {
+func (d *Dao) GetDoctorByPage(page int , pageSize int) []*doctor.Doctor {
 	var doctors []*doctor.Doctor
 	_ = d.mainEngine.Limit(pageSize).Offset(pageSize*(page - 1)).Find(&doctors)
 	return doctors

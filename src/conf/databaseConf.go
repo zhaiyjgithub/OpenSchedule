@@ -9,7 +9,7 @@ type DatabaseConf struct {
 }
 
 var MySQLConf = DatabaseConf{
-	Host: "42.192.92.99",
+	Host: "mysql",//"42.192.92.99",
 	Port: 3306,
 	User: "gust",
 	Password: "Yj202!0701",
