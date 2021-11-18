@@ -5,8 +5,9 @@
 package job
 
 import (
-	"OpenSchedule/src/service/doctor"
-	"OpenSchedule/src/service/schedule"
+	"OpenSchedule/src/model/doctor"
+	"OpenSchedule/src/service/doctorService"
+	"OpenSchedule/src/service/scheduleService"
 	"fmt"
 	"github.com/go-co-op/gocron"
 	"time"
@@ -15,15 +16,15 @@ import (
 const Len = 100
 
 type SyncScheduleJob struct {
-	doctorService   doctor.DoctorService
-	scheduleService schedule.Service
+	doctorService   doctorService.Service
+	scheduleService scheduleService.Service
 }
 
 func NewJob() *SyncScheduleJob {
 	return &SyncScheduleJob{}
 }
 
-func (j *SyncScheduleJob)RegisterService(doctorService doctor.DoctorService, scheduleService schedule.Service)  {
+func (j *SyncScheduleJob)RegisterService(doctorService doctorService.Service, scheduleService scheduleService.Service)  {
 	j.doctorService = doctorService
 	j.scheduleService = scheduleService
 }
@@ -58,6 +59,7 @@ func (j *SyncScheduleJob) SyncDoctorsNextAvailableDate()  {
 		if err != nil {
 			fmt.Println("bulk update error: ", err)
 		}
+
 		fmt.Println("page : ", page)
 		page = page + 1
 		if len(doctors) < pageSize {
@@ -76,12 +78,21 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 	testNpi := int64(1902809254)
 	defaultSettings := j.scheduleService.GetScheduleSettings(testNpi)
 	page := 1
-	pageSize := 100
+	pageSize := 2000
 
+	count := 0
 	fmt.Println("begin to sync", time.Now().UTC().Format(time.RFC3339))
 	for ;; {
 		doctors := j.doctorService.GetDoctorByPage(page, pageSize)
+		var notCreatedDoctors []*doctor.Doctor
 		for _, doc := range doctors {
+			isExist := j.scheduleService.IsExist(doc.Npi)
+			if !isExist {
+				notCreatedDoctors = append(notCreatedDoctors, doc)
+			}
+		}
+
+		for _, doc := range notCreatedDoctors {
 			defaultSettings.ID = 0
 			defaultSettings.Npi = doc.Npi
 			err := j.scheduleService.SetScheduleSettings(defaultSettings)
@@ -89,6 +100,7 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 				fmt.Println("save schedule settings err: ", err.Error())
 			}
 		}
+		count = count + len(notCreatedDoctors)
 		fmt.Println("page : ", page)
 		page = page + 1
 		if len(doctors) < pageSize {
@@ -96,5 +108,5 @@ func (j *SyncScheduleJob) SyncDefaultScheduleSettingsToAllDoctor()  {
 			break
 		}
 	}
-	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339), "page: ", page)
+	fmt.Println("end the sync", time.Now().UTC().Format(time.RFC3339), "page: ", page, "count: ", count)
 }

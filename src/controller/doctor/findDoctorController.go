@@ -4,7 +4,7 @@ import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/response"
 	"OpenSchedule/src/router"
-	"OpenSchedule/src/service/doctor"
+	"OpenSchedule/src/service/doctorService"
 	"OpenSchedule/src/utils"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -13,7 +13,7 @@ import (
 
 type FindDoctorController struct {
 	Ctx           iris.Context
-	DoctorService doctor.DoctorService
+	DoctorService doctorService.Service
 }
 
 func (c *FindDoctorController) BeforeActivation(b mvc.BeforeActivation)  {

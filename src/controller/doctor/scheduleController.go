@@ -4,15 +4,15 @@ import (
 	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/response"
 	"OpenSchedule/src/router"
-	"OpenSchedule/src/service/schedule"
+	"OpenSchedule/src/service/scheduleService"
 	"OpenSchedule/src/utils"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 )
 
 type ScheduleController struct {
-	Ctx iris.Context
-	ScheduleService schedule.Service
+	Ctx             iris.Context
+	ScheduleService scheduleService.Service
 }
 
 func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation)  {

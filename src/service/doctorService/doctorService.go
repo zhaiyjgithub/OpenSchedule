@@ -1,4 +1,4 @@
-package doctor
+package doctorService
 
 import (
 	"OpenSchedule/src/constant"
@@ -8,7 +8,7 @@ import (
 	"OpenSchedule/src/model/viewModel"
 )
 
-type DoctorService interface {
+type Service interface {
 	SearchDoctor(keyword string,
 		isInClinicEnable bool,
 		isVirtualEnable bool,
@@ -23,13 +23,14 @@ type DoctorService interface {
 		pageSize int,
 		sortType constant.SortType, distance int) []*viewModel.DoctorInfo
 	GetDoctorByPage(page int, pageSize int) []*doctor.Doctor
+	IsExist(npi int64) bool
 }
 
 type doctorService struct {
 	dao *doctor2.Dao
 }
 
-func NewDoctorService() DoctorService {
+func NewService() Service {
 	return &doctorService{dao: doctor2.NewDoctorDao(database.GetElasticSearchEngine(), database.GetMySqlEngine())}
 }
 
@@ -61,4 +62,8 @@ func (s *doctorService) SearchDoctor(keyword string,
 
 func (s *doctorService) GetDoctorByPage(page int, pageSize int) []*doctor.Doctor {
 	return s.dao.GetDoctorByPage(page, pageSize)
+}
+
+func (s *doctorService) IsExist(npi int64) bool {
+	return s.dao.IsExist(npi)
 }

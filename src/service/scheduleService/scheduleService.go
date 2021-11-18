@@ -1,4 +1,4 @@
-package schedule
+package scheduleService
 
 import (
 	"OpenSchedule/src/constant"
@@ -19,6 +19,7 @@ type Service interface {
 	GetClosedDate(npi int64) []doctor.ClosedDateSettings
 	SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error
 	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
+	IsExist(npi int64) bool
 }
 
 func NewService() Service {
@@ -94,4 +95,8 @@ func (s *service) DeleteClosedDate(npi int64, id int) error {
 
 func (s *service) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
 	return s.dao.GetClosedDate(npi)
+}
+
+func (s *service) IsExist(npi int64) bool {
+	return s.dao.IsExist(npi)
 }

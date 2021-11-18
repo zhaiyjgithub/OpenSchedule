@@ -24,3 +24,9 @@ func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
 	}
 	return st
 }
+
+func (d *Dao) IsExist(npi int64) bool {
+	var count int64
+	d.engine.Model(&doctor.ScheduleSettings{}).Where("npi = ?", npi).Count(&count)
+	return count > 0
+}
