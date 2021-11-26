@@ -6,6 +6,7 @@ const (
 const (
 	Doctor = AnyHealthService + "/Doctor"
 	SearchDoctor = "/SearchDoctor"
+	GetDoctor = "/GetDoctor"
 )
 
 const (

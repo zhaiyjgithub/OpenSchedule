@@ -24,6 +24,7 @@ type Service interface {
 		sortType constant.SortType, distance int) []*viewModel.DoctorInfo
 	GetDoctorByPage(page int, pageSize int) []*doctor.Doctor
 	IsExist(npi int64) bool
+	GetDoctor(npi int64) doctor.Doctor
 }
 
 type doctorService struct {
@@ -66,4 +67,8 @@ func (s *doctorService) GetDoctorByPage(page int, pageSize int) []*doctor.Doctor
 
 func (s *doctorService) IsExist(npi int64) bool {
 	return s.dao.IsExist(npi)
+}
+
+func (s *doctorService) GetDoctor(npi int64) doctor.Doctor  {
+	return s.dao.GetDoctor(npi)
 }

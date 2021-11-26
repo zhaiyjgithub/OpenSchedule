@@ -204,6 +204,12 @@ func (d *Dao) GetDoctorByPage(page int , pageSize int) []*doctor.Doctor {
 	return doctors
 }
 
+func (d *Dao) GetDoctor(npi int64) doctor.Doctor {
+	var doc doctor.Doctor
+	_ = d.mainEngine.Where("npi = ?", npi).First(&doc)
+	return doc
+}
+
 func (d *Dao) IsExist(npi int64) bool {
 	var count int64
 	_ = d.mainEngine.Model(&doctor.Doctor{}).Where("npi = ?",  npi).Count(&count)

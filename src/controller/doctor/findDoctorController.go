@@ -18,6 +18,19 @@ type FindDoctorController struct {
 
 func (c *FindDoctorController) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(http.MethodPost, router.SearchDoctor, "SearchDoctor")
+	b.Handle(http.MethodPost, router.GetDoctor, "GetDoctor")
+}
+
+func (c *FindDoctorController) GetDoctor()  {
+	type Param struct {
+		Npi int64 `json:"npi"`
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	doc := c.DoctorService.GetDoctor(p.Npi)
+	response.Success(c.Ctx, response.Successful, doc)
 }
 
 func (c *FindDoctorController) SearchDoctor()  {

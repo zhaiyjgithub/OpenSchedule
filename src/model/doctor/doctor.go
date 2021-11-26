@@ -58,51 +58,51 @@ type Doctor struct {
 	//[ 0] id                                             uint                 null: false  primary: true   isArray: false  auto: true   col: uint            len: -1      default: []
 	ID uint32 `gorm:"primary_key;AUTO_INCREMENT;column:id;type:uint;"json:"-"`
 	//[ 1] npi                                            int                  null: true   primary: false  isArray: false  auto: false  col: int             len: -1      default: []
-	Npi int64 `gorm:"column:npi;type:int;"`
+	Npi int64 `gorm:"column:npi;type:int;"json:"npi"`
 	//[ 2] last_name                                      varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	LastName string `gorm:"column:last_name;type:varchar;size:50;"`
+	LastName string `gorm:"column:last_name;type:varchar;size:50;"json:"lastName"`
 	//[ 3] first_name                                     varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	FirstName string `gorm:"column:first_name;type:varchar;size:50;"`
+	FirstName string `gorm:"column:first_name;type:varchar;size:50;"json:"firstName"`
 	//[ 4] middle_name                                    varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	MiddleName string `gorm:"column:middle_name;type:varchar;size:20;"`
+	MiddleName string `gorm:"column:middle_name;type:varchar;size:20;"json:"middleName"`
 	//[ 5] created_at                                     datetime             null: true   primary: false  isArray: false  auto: false  col: datetime        len: -1      default: []
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;"json:"-"`
 	//[ 6] updated_at                                     datetime             null: true   primary: false  isArray: false  auto: false  col: datetime        len: -1      default: []
 	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;"json:"-"`
 	//[ 7] full_name                                      varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	FullName string `gorm:"column:full_name;type:varchar;size:255;"`
+	FullName string `gorm:"column:full_name;type:varchar;size:255;"json:"fullName"`
 	//[ 8] name_prefix                                    varchar(10)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 10      default: []
-	NamePrefix string `gorm:"column:name_prefix;type:varchar;size:10;"`
+	NamePrefix string `gorm:"column:name_prefix;type:varchar;size:10;"json:"namePrefix"`
 	//[ 9] credential                                     varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	Credential string `gorm:"column:credential;type:varchar;size:50;"`
+	Credential string `gorm:"column:credential;type:varchar;size:50;"json:"credential"`
 	//[10] gender                                         varchar(2)           null: true   primary: false  isArray: false  auto: false  col: varchar         len: 2       default: []
-	Gender string `gorm:"column:gender;type:varchar;size:2;"`
+	Gender string `gorm:"column:gender;type:varchar;size:2;"json:"gender"`
 	//[11] address                                        text(65535)          null: true   primary: false  isArray: false  auto: false  col: text            len: 65535   default: []
-	Address string `gorm:"column:address;type:text;size:65535;"`
+	Address string `gorm:"column:address;type:text;size:65535;"json:"address"`
 	//[12] city                                           varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	City string `gorm:"column:city;type:varchar;size:20;"`
+	City string `gorm:"column:city;type:varchar;size:20;"json:"city"`
 	//[13] state                                          varchar(5)           null: true   primary: false  isArray: false  auto: false  col: varchar         len: 5       default: []
-	State string `gorm:"column:state;type:varchar;size:5;"`
+	State string `gorm:"column:state;type:varchar;size:5;"json:"state"`
 	//[14] zip                                            varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	Zip string `gorm:"column:zip;type:varchar;size:20;"`
+	Zip string `gorm:"column:zip;type:varchar;size:20;"json:"zip"`
 	//[15] phone                                          varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	Phone string `gorm:"column:phone;type:varchar;size:20;"`
+	Phone string `gorm:"column:phone;type:varchar;size:20;"json:"phone"`
 	//[16] specialty                                      varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	Specialty string `gorm:"column:specialty;type:varchar;size:255;"`
+	Specialty string `gorm:"column:specialty;type:varchar;size:255;"json:"specialty"`
 	//[17] sub_specialty                                  varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	SubSpecialty string `gorm:"column:sub_specialty;type:varchar;size:255;"`
+	SubSpecialty string `gorm:"column:sub_specialty;type:varchar;size:255;"json:"subSpecialty"`
 	//[18] job_title                                      varchar(100)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 100     default: []
-	JobTitle string `gorm:"column:job_title;type:varchar;size:100;"`
+	JobTitle string `gorm:"column:job_title;type:varchar;size:100;"json:"jobTitle"`
 	//[19] summary                                        varchar(255)         null: true   primary: false  isArray: false  auto: false  col: varchar         len: 255     default: []
-	Summary string `gorm:"column:summary;type:varchar;size:255;"`
+	Summary string `gorm:"column:summary;type:varchar;size:255;"json:"summary"`
 	//[20] fax                                            varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	Fax string `gorm:"column:fax;type:varchar;size:20;"`
+	Fax string `gorm:"column:fax;type:varchar;size:20;"json:"fax"`
 	//[21] address_suit                                   varchar(20)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 20      default: []
-	AddressSuit string `gorm:"column:address_suit;type:varchar;size:20;"`
+	AddressSuit string `gorm:"column:address_suit;type:varchar;size:20;"json:"addressSuit"`
 	//[22] lang                                           varchar(50)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 50      default: []
-	Lang string `gorm:"column:lang;type:varchar;size:50;"`
+	Lang string `gorm:"column:lang;type:varchar;size:50;"json:"lang"`
 	//[23] year_of_experience                             varchar(10)          null: true   primary: false  isArray: false  auto: false  col: varchar         len: 10      default: []
-	YearOfExperience string `gorm:"column:year_of_experience;type:varchar;size:10;"`
+	YearOfExperience string `gorm:"column:year_of_experience;type:varchar;size:10;"json:"yearOfExperience"`
 }
 
 // TableName sets the insert table name for this struct type
