@@ -20,6 +20,7 @@ type Service interface {
 	SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error
 	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
 	IsExist(npi int64) bool
+	SyncDoctorToES(doctor * doctor.Doctor) error
 }
 
 func NewService() Service {
@@ -99,4 +100,8 @@ func (s *service) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
 
 func (s *service) IsExist(npi int64) bool {
 	return s.dao.IsExist(npi)
+}
+
+func (s *service) SyncDoctorToES(doctor * doctor.Doctor) error  {
+	return s.dao.SyncDoctorToES(doctor)
 }

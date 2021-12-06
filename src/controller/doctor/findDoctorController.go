@@ -2,9 +2,11 @@ package doctor
 
 import (
 	"OpenSchedule/src/constant"
+	"OpenSchedule/src/model/doctor"
 	"OpenSchedule/src/response"
 	"OpenSchedule/src/router"
 	"OpenSchedule/src/service/doctorService"
+	"OpenSchedule/src/service/scheduleService"
 	"OpenSchedule/src/utils"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -14,11 +16,13 @@ import (
 type FindDoctorController struct {
 	Ctx           iris.Context
 	DoctorService doctorService.Service
+	ScheduleService scheduleService.Service
 }
 
 func (c *FindDoctorController) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(http.MethodPost, router.SearchDoctor, "SearchDoctor")
 	b.Handle(http.MethodPost, router.GetDoctor, "GetDoctor")
+	b.Handle(http.MethodPost, router.SaveDoctor, "SaveDoctor")
 }
 
 func (c *FindDoctorController) GetDoctor()  {
@@ -70,7 +74,6 @@ func (c *FindDoctorController) SearchDoctor()  {
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-
 	docs := c.DoctorService.SearchDoctor(p.Keyword,
 		p.IsInClinicEnable,
 		p.IsVirtualEnable,
@@ -86,4 +89,23 @@ func (c *FindDoctorController) SearchDoctor()  {
 		p.SortType,
 		p.Distance)
 	response.Success(c.Ctx, response.Successful, docs)
+}
+
+func (c *FindDoctorController) SaveDoctor() {
+	type Param struct {
+		Doctor doctor.Doctor `json:"doctor"`
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	if err := c.DoctorService.SaveDoctor(&p.Doctor); err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
+		return
+	}
+	if err := c.ScheduleService.SyncDoctorToES(&p.Doctor); err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
+		return
+	}
+	response.Success(c.Ctx, response.Successful, nil)
 }

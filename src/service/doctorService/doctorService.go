@@ -25,6 +25,7 @@ type Service interface {
 	GetDoctorByPage(page int, pageSize int) []*doctor.Doctor
 	IsExist(npi int64) bool
 	GetDoctor(npi int64) doctor.Doctor
+	SaveDoctor(doc *doctor.Doctor) error
 }
 
 type doctorService struct {
@@ -71,4 +72,8 @@ func (s *doctorService) IsExist(npi int64) bool {
 
 func (s *doctorService) GetDoctor(npi int64) doctor.Doctor  {
 	return s.dao.GetDoctor(npi)
+}
+
+func (s *doctorService) SaveDoctor(doc *doctor.Doctor) error  {
+	return s.dao.SaveDoctor(doc)
 }

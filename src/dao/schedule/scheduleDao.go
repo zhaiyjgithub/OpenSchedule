@@ -105,6 +105,10 @@ func (d *Dao) DeleteESDoctorById(esId string) error {
 	return err
 }
 
+func (d *Dao) SyncDoctorToES(doctor * doctor.Doctor) error {
+	return nil
+}
+
 func (d *Dao) GetDuplicateDoctorInfoFromES(npi int64) []string {
 	q := elastic.NewTermQuery("Npi", npi)
 	result, err := d.elasticSearchEngine.Search().Index(database.DoctorIndexName).

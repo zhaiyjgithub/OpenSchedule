@@ -75,7 +75,7 @@ func TestDao_CalcNextAvailableDateForEachWeekDay(t *testing.T) {
 
 func TestDao_CalcNextAvailableDate(t *testing.T) {
 	currentTime := time.Now().UTC()//time.Date(2021, 10, 28, 11, 36, 0, 0, time.UTC)
-	st := dao.GetScheduleSettings(testNpi)
+	st := dao.GetScheduleSettings(int64(1902806797))
 	nextAvailableDate := dao.CalcNextAvailableDate(currentTime, constant.Virtual, st)
 	if nextAvailableDate == constant.InvalidDateTime {
 		t.Errorf("calc failed")

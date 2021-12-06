@@ -215,3 +215,14 @@ func (d *Dao) IsExist(npi int64) bool {
 	_ = d.mainEngine.Model(&doctor.Doctor{}).Where("npi = ?",  npi).Count(&count)
 	return count > 0
 }
+
+func (d *Dao) SaveDoctor(doc *doctor.Doctor) error {
+	var doctor doctor.Doctor
+	db := d.mainEngine.Where("npi = ?", doc.Npi).First(&doctor)
+	if db.Error != nil {
+		return db.Error
+	}
+	doc.ID = doctor.ID
+	db = d.mainEngine.Save(doc)
+	return db.Error
+}
