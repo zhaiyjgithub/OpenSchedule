@@ -18,6 +18,10 @@ type ScriptLocation struct {
 	Lon float64
 }
 
+type Hits struct {
+	TotalHits int64
+}
+
 type Dao struct {
 	elasticSearchEngine *elastic.Client
 	mainEngine *gorm.DB
@@ -28,8 +32,6 @@ func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *Dao {
 }
 
 func (d *Dao) SearchDoctor(keyword string,
-	IsInClinicBookEnable bool,
-	IsVirtualBookEnable bool,
 	appointmentType constant.AppointmentType,
 	nextAvailableDate string,
 	city string,
@@ -38,13 +40,23 @@ func (d *Dao) SearchDoctor(keyword string,
 	lon float64,
 	gender constant.Gender,
 	page int,
-	pageSize int, sortType constant.SortType, distance int ) []*viewModel.DoctorInfo {
+	pageSize int, sortType constant.SortByType, distance int ) (int64, []*viewModel.DoctorInfo) {
 	q := elastic.NewBoolQuery()
+
+	isInClinicEnable:= true
+	isVirtualEnable:= true
+	if appointmentType == constant.InClinic {
+		isInClinicEnable = true
+		isVirtualEnable = false
+	} else if appointmentType == constant.Virtual {
+		isInClinicEnable = false
+		isVirtualEnable = true
+	}
 	if len(keyword) > 0 {
 		fuzzyQuery := elastic.NewMatchQuery("FullName", keyword).Boost(1.5).Fuzziness("2").PrefixLength(0).MaxExpansions(100)
 		q.Must(fuzzyQuery)
-		q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", IsInClinicBookEnable))
-		q.Filter(elastic.NewTermQuery("IsVirtualBookEnable", IsVirtualBookEnable))
+		q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
+		q.Filter(elastic.NewTermQuery("IsVirtualBookEnable", isVirtualEnable))
 		if len(city) > 0 {
 			q.Filter(elastic.NewTermQuery("City", city))
 		}
@@ -62,8 +74,8 @@ func (d *Dao) SearchDoctor(keyword string,
 			}
 		}
 	}else {
-		q.Must(elastic.NewTermQuery("IsInClinicBookEnable", IsInClinicBookEnable))
-		q.Must(elastic.NewTermQuery("IsVirtualBookEnable", IsVirtualBookEnable))
+		q.Must(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
+		q.Must(elastic.NewTermQuery("IsVirtualBookEnable", isVirtualEnable))
 		if len(city) > 0 {
 			q.Must(elastic.NewTermQuery("City", city))
 		}
@@ -90,15 +102,16 @@ func (d *Dao) SearchDoctor(keyword string,
 	distanceQuery := elastic.NewGeoDistanceQuery("Location").Lat(lat).Lon(lon).Distance(distanceRange).DistanceType("plane")
 	q.Filter(distanceQuery)
 	docs := make([]*viewModel.DoctorInfo, 0)
+	total := int64(0)
 	if sortType == constant.ByDistance {
-		docs = d.searchByDistance(lat, lon, q, page, pageSize)
+		total, docs = d.searchByDistance(lat, lon, q, page, pageSize)
 	}else {
-		docs = d.searchByDefault(lat, lon, q, page, pageSize)
+		total, docs = d.searchByDefault(lat, lon, q, page, pageSize)
 	}
-	return docs
+	return total, docs
 }
 
-func (d *Dao)searchByDistance(lat float64, lon float64, q elastic.Query, page int , pageSize int) []*viewModel.DoctorInfo {
+func (d *Dao)searchByDistance(lat float64, lon float64, q elastic.Query, page int , pageSize int) (int64, []*viewModel.DoctorInfo) {
 	src, err := q.Source()
 	if err != nil {
 		log.Fatal(err)
@@ -123,8 +136,10 @@ func (d *Dao)searchByDistance(lat float64, lon float64, q elastic.Query, page in
 		Do(context.Background())
 	if err != nil {
 		fmt.Println("search failed")
-		return docs
+		return 0, docs
 	}
+
+	totalHits := result.TotalHits()
 	for _, hit := range result.Hits.Hits {
 		var doc viewModel.DoctorInfo
 		err = json.Unmarshal(hit.Source, &doc)
@@ -144,10 +159,10 @@ func (d *Dao)searchByDistance(lat float64, lon float64, q elastic.Query, page in
 		fmt.Println(doc.FullName)
 	}
 
-	return docs
+	return totalHits, docs
 }
 
-func (d *Dao)searchByDefault(lat float64, lon float64, q elastic.Query, page int , pageSize int) []*viewModel.DoctorInfo {
+func (d *Dao)searchByDefault(lat float64, lon float64, q elastic.Query, page int , pageSize int) (int64, []*viewModel.DoctorInfo) {
 	sl := &ScriptLocation{
 		Lat: lat,
 		Lon: lon,
@@ -170,8 +185,10 @@ func (d *Dao)searchByDefault(lat float64, lon float64, q elastic.Query, page int
 	result, err := d.elasticSearchEngine.Search().Index(database.DoctorIndexName).SearchSource(builder).Do(context.Background())
 	if err != nil {
 		fmt.Println("search failed")
-		return docs
+		return 0, docs
 	}
+
+	totalHits := result.TotalHits()
 	for _, hit := range result.Hits.Hits {
 		var doc viewModel.DoctorInfo
 		err = json.Unmarshal(hit.Source, &doc)
@@ -195,7 +212,7 @@ func (d *Dao)searchByDefault(lat float64, lon float64, q elastic.Query, page int
 	for _, doc := range docs {
 		fmt.Println(doc.FullName)
 	}
-	return docs
+	return totalHits, docs
 }
 
 func (d *Dao) GetDoctorByPage(page int , pageSize int) []*doctor.Doctor {

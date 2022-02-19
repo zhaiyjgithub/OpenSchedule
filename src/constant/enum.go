@@ -16,11 +16,11 @@ const (
 	Male Gender = "M"
 )
 
-type SortType int
+type SortByType int
 
 const  (
-	ByDefault SortType = 0
-	ByDistance SortType = 1
+	ByDefault  SortByType = 0
+	ByDistance SortByType = 1
 )
 
 var DefaultTimeStamp = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)

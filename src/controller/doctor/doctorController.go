@@ -3,6 +3,7 @@ package doctor
 import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/model/doctor"
+	"OpenSchedule/src/model/viewModel"
 	"OpenSchedule/src/response"
 	"OpenSchedule/src/router"
 	"OpenSchedule/src/service/doctorService"
@@ -13,19 +14,19 @@ import (
 	"net/http"
 )
 
-type FindDoctorController struct {
+type Controller struct {
 	Ctx           iris.Context
 	DoctorService doctorService.Service
 	ScheduleService scheduleService.Service
 }
 
-func (c *FindDoctorController) BeforeActivation(b mvc.BeforeActivation)  {
+func (c *Controller) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(http.MethodPost, router.SearchDoctor, "SearchDoctor")
 	b.Handle(http.MethodPost, router.GetDoctor, "GetDoctor")
 	b.Handle(http.MethodPost, router.SaveDoctor, "SaveDoctor")
 }
 
-func (c *FindDoctorController) GetDoctor()  {
+func (c *Controller) GetDoctor()  {
 	type Param struct {
 		Npi int64 `json:"npi"`
 	}
@@ -37,7 +38,7 @@ func (c *FindDoctorController) GetDoctor()  {
 	response.Success(c.Ctx, response.Successful, doc)
 }
 
-func (c *FindDoctorController) SearchDoctor()  {
+func (c *Controller) SearchDoctor()  {
 	//keyword := ""
 	//isInClinicEnable := true
 	//isVirtualEnable:= true
@@ -55,8 +56,6 @@ func (c *FindDoctorController) SearchDoctor()  {
 
 	type Param struct {
 		Keyword string
-		IsInClinicEnable bool
-		IsVirtualEnable bool
 		AppointmentType constant.AppointmentType
 		NextAvailableDate string
 		Gender constant.Gender
@@ -66,17 +65,16 @@ func (c *FindDoctorController) SearchDoctor()  {
 		Lon float64
 		Distance int
 		Page int
-		PageSize int
-		SortType constant.SortType
+		PageSize   int
+		SortByType constant.SortByType
 	}
 
 	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	docs := c.DoctorService.SearchDoctor(p.Keyword,
-		p.IsInClinicEnable,
-		p.IsVirtualEnable,
+	total, docs := c.DoctorService.SearchDoctor(
+		p.Keyword,
 		p.AppointmentType,
 		p.NextAvailableDate,
 		p.City,
@@ -86,12 +84,18 @@ func (c *FindDoctorController) SearchDoctor()  {
 		p.Gender,
 		p.Page,
 		p.PageSize,
-		p.SortType,
+		p.SortByType,
 		p.Distance)
-	response.Success(c.Ctx, response.Successful, docs)
+	response.Success(c.Ctx, response.Successful, struct {
+		Total int64
+		Data []*viewModel.DoctorInfo
+	}{
+		Total: total,
+		Data: docs,
+	})
 }
 
-func (c *FindDoctorController) SaveDoctor() {
+func (c *Controller) SaveDoctor() {
 	type Param struct {
 		Doctor doctor.Doctor `json:"doctor"`
 	}

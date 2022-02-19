@@ -10,8 +10,6 @@ import (
 
 type Service interface {
 	SearchDoctor(keyword string,
-		isInClinicEnable bool,
-		isVirtualEnable bool,
 		appointmentType constant.AppointmentType,
 		nextAvailableDate string,
 		city string,
@@ -21,7 +19,7 @@ type Service interface {
 		gender constant.Gender,
 		page int,
 		pageSize int,
-		sortType constant.SortType, distance int) []*viewModel.DoctorInfo
+		sortType constant.SortByType, distance int) (int64, []*viewModel.DoctorInfo)
 	GetDoctorByPage(page int, pageSize int) []*doctor.Doctor
 	IsExist(npi int64) bool
 	GetDoctor(npi int64) doctor.Doctor
@@ -37,8 +35,6 @@ func NewService() Service {
 }
 
 func (s *doctorService) SearchDoctor(keyword string,
-	isInClinicEnable bool,
-	isVirtualEnable bool,
 	appointmentType constant.AppointmentType,
 	nextAvailableDate string,
 	city string,
@@ -47,10 +43,9 @@ func (s *doctorService) SearchDoctor(keyword string,
 	lon float64,
 	gender constant.Gender,
 	page int,
-	pageSize int, sortType constant.SortType, distance int) []*viewModel.DoctorInfo {
-	return s.dao.SearchDoctor(keyword,
-		isInClinicEnable,
-		isVirtualEnable,
+	pageSize int, sortType constant.SortByType, distance int) (int64, []*viewModel.DoctorInfo) {
+	return s.dao.SearchDoctor(
+		keyword,
 		appointmentType,
 		nextAvailableDate,
 		city,

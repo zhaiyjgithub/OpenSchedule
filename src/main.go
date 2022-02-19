@@ -39,7 +39,7 @@ func configureAnyHealthService(app *iris.Application)  {
 func configureDoctorMVC(app *mvc.Application)  {
 	doctorService := doctorService.NewService()
 	app.Register(doctorService)
-	app.Handle(new(doctor.FindDoctorController))
+	app.Handle(new(doctor.Controller))
 }
 
 func configureScheduleSettingsMVC(app *mvc.Application)  {

@@ -21,7 +21,6 @@ func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(iris.MethodPost, router.AddClosedDateSettings, "AddClosedDateSettings")
 	b.Handle(iris.MethodPost, router.DeleteClosedDateSettings, "DeleteClosedDateSettings")
 	b.Handle(iris.MethodPost, router.GetClosedDateSettings, "GetClosedDateSettings")
-
 }
 
 func (c *ScheduleController) SetScheduleSettings()  {

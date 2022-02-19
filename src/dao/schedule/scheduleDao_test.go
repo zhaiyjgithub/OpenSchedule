@@ -175,7 +175,6 @@ func TestDao_GetClosedDate(t *testing.T) {
 
 func TestDao_GetDuplicateDoctorInfoFromES(t *testing.T) {
 	//clear the database
-
 	page := 1
 	pageSize := 500
 	count := 0
@@ -194,5 +193,4 @@ func TestDao_GetDuplicateDoctorInfoFromES(t *testing.T) {
 		}
 		time.Sleep(time.Millisecond * 500)
 	}
-
 }
