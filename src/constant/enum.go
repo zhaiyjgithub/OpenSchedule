@@ -11,7 +11,7 @@ const (
 
 type Gender string
 const (
-	Unspecified Gender = ""
+	Trans Gender = ""
 	Female Gender = "F"
 	Male Gender = "M"
 )

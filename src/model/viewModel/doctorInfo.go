@@ -11,7 +11,9 @@ type Location struct {
 }
 type DoctorInfo struct {
 	doctor.Doctor
-	Location elastic.GeoPoint
-	Distance float64
+	Location elastic.GeoPoint `json:"location"`
+	Distance float64 `json:"distance"`
+	NextAvailableDateInClinic string `json:"nextAvailableDateInClinic"`
+	NextAvailableDateVirtual string `json:"nextAvailableDateVirtual"`
 }
 

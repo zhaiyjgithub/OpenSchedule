@@ -33,14 +33,18 @@ func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *Dao {
 
 func (d *Dao) SearchDoctor(keyword string,
 	appointmentType constant.AppointmentType,
-	nextAvailableDate string,
+	startDate string,
+	endDate string,
 	city string,
 	specialty string,
 	lat float64,
 	lon float64,
 	gender constant.Gender,
 	page int,
-	pageSize int, sortType constant.SortByType, distance int ) (int64, []*viewModel.DoctorInfo) {
+	pageSize int,
+	sortType constant.SortByType,
+	distance int,
+	) (int64, []*viewModel.DoctorInfo) {
 	q := elastic.NewBoolQuery()
 
 	isInClinicEnable:= true
@@ -55,47 +59,72 @@ func (d *Dao) SearchDoctor(keyword string,
 	if len(keyword) > 0 {
 		fuzzyQuery := elastic.NewMatchQuery("FullName", keyword).Boost(1.5).Fuzziness("2").PrefixLength(0).MaxExpansions(100)
 		q.Must(fuzzyQuery)
-		q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
-		q.Filter(elastic.NewTermQuery("IsVirtualBookEnable", isVirtualEnable))
+		if appointmentType == constant.InClinic {
+			q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
+		} else if appointmentType == constant.Virtual {
+			q.Filter(elastic.NewTermQuery("IsVirtualBookEnable", isVirtualEnable))
+		} else {
+			//
+		}
+
 		if len(city) > 0 {
 			q.Filter(elastic.NewTermQuery("City", city))
 		}
 		if len(specialty) > 0 {
 			q.Filter(elastic.NewTermQuery("Specialty", specialty))
 		}
-		q.Filter(elastic.NewTermQuery("Gender", gender))
-		if len(nextAvailableDate) > 0 {
+		if gender != constant.Trans {
+			q.Filter(elastic.NewTermQuery("Gender", gender))
+		}
+		if len(startDate) > 0 {
 			if appointmentType == constant.InClinic {
 				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
-					Gte(nextAvailableDate))
-			}else {
+					Gte(startDate).Lte(endDate))
+			}else if appointmentType == constant.Virtual {
 				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
-					Gte(nextAvailableDate))
+					Gte(startDate).Lte(endDate))
+			} else {
+				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+					Gte(startDate).Lte(endDate))
+				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+					Gte(startDate).Lte(endDate))
 			}
 		}
 	}else {
-		q.Must(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
-		q.Must(elastic.NewTermQuery("IsVirtualBookEnable", isVirtualEnable))
+		if appointmentType == constant.InClinic {
+			q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
+		} else if appointmentType == constant.Virtual {
+			q.Filter(elastic.NewTermQuery("IsVirtualBookEnable", isVirtualEnable))
+		} else {
+			//
+		}
 		if len(city) > 0 {
 			q.Must(elastic.NewTermQuery("City", city))
 		}
 		if len(specialty) > 0 {
 			q.Must(elastic.NewTermQuery("Specialty", specialty).Boost(3))
 		}
-		q.Filter(elastic.NewTermQuery("Gender", gender))
-		if len(nextAvailableDate) > 0 {
+		if gender != constant.Trans {
+			q.Filter(elastic.NewTermQuery("Gender", gender))
+		}
+		if len(startDate) > 0 {
 			if appointmentType == constant.InClinic {
 				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
-					Gte(nextAvailableDate))
-			}else {
+					Gte(startDate).Lte(endDate))
+			}else if appointmentType == constant.Virtual {
 				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
-					Gte(nextAvailableDate))
+					Gte(startDate).Lte(endDate))
+			} else {
+				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+					Gte(startDate).Lte(endDate))
+				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+					Gte(startDate).Lte(endDate))
 			}
 		}
 	}
 
-	defaultDistance := 10 //mini = 10km
-	if distance > defaultDistance {
+	defaultDistance := 1000 //default radius = 1000km for near by
+	if distance != defaultDistance {
 		defaultDistance = distance
 	}
 	distanceRange := fmt.Sprintf("%dkm", distance)

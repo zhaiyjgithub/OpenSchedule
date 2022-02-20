@@ -57,7 +57,8 @@ func (c *Controller) SearchDoctor()  {
 	type Param struct {
 		Keyword string
 		AppointmentType constant.AppointmentType
-		NextAvailableDate string
+		StartDate string
+		EndDate string
 		Gender constant.Gender
 		Specialty string
 		City string
@@ -76,7 +77,8 @@ func (c *Controller) SearchDoctor()  {
 	total, docs := c.DoctorService.SearchDoctor(
 		p.Keyword,
 		p.AppointmentType,
-		p.NextAvailableDate,
+		p.StartDate,
+		p.EndDate,
 		p.City,
 		p.Specialty,
 		p.Lat,
@@ -87,8 +89,8 @@ func (c *Controller) SearchDoctor()  {
 		p.SortByType,
 		p.Distance)
 	response.Success(c.Ctx, response.Successful, struct {
-		Total int64
-		Data []*viewModel.DoctorInfo
+		Total int64 `json:"total"`
+		Data []*viewModel.DoctorInfo `json:"data"`
 	}{
 		Total: total,
 		Data: docs,
