@@ -9,9 +9,11 @@ import (
 	"OpenSchedule/src/service/doctorService"
 	"OpenSchedule/src/service/scheduleService"
 	"OpenSchedule/src/utils"
+	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"net/http"
+	"time"
 )
 
 type Controller struct {
@@ -88,6 +90,7 @@ func (c *Controller) SearchDoctor()  {
 		p.PageSize,
 		p.SortByType,
 		p.Distance)
+
 	response.Success(c.Ctx, response.Successful, struct {
 		Total int64 `json:"total"`
 		Data []*viewModel.DoctorInfo `json:"data"`
@@ -95,6 +98,135 @@ func (c *Controller) SearchDoctor()  {
 		Total: total,
 		Data: docs,
 	})
+}
+
+func (c *Controller)GetDoctorTimeSlotsIn2Weeks(npi int64, startDate time.Time, len int)  {
+	type TimeSlotPeerDay struct {
+		Date time.Time
+		TimeSlots []doctor.TimeSlot
+	}
+
+	endDate := startDate.AddDate(0,0, len - 1)
+	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(npi, startDate, endDate)
+	setting := c.ScheduleService.GetScheduleSettings(npi)
+	timeSlots := make([]TimeSlotPeerDay, 0)
+	for i := 0 ; i < len; i ++ {
+		targetDate := startDate.AddDate(0,0, i)
+		dateKey := fmt.Sprintf( "%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
+		bookedTimeSlots, ok := bookedTimeSlotsMap[dateKey]
+		timeSlotsPeerDay := make([]doctor.TimeSlot, 0)
+		if ok {
+			timeSlotsPeerDay = c.GetDoctorTimeSlotsPeerDay(setting, targetDate, bookedTimeSlots)
+		} else {
+			timeSlotsPeerDay = c.GetDoctorTimeSlotsPeerDay(setting, targetDate, make([]doctor.TimeSlot, 0))
+		}
+		timeSlots = append(timeSlots, TimeSlotPeerDay{Date: targetDate, TimeSlots: timeSlotsPeerDay})
+	}
+	fmt.Println(timeSlots)
+}
+
+func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi int64, startDate time.Time, endTime time.Time) map[string][]doctor.TimeSlot {
+	appts := c.ScheduleService.GetAppointmentByRange(npi, constant.Requested, startDate, endTime)
+	bookedTimeSlotsMap := make(map[string][]doctor.TimeSlot)
+	for _, appt := range appts {
+		offset := appt.AppointmentDate.Hour() * 60 + appt.AppointmentDate.Minute()
+		dateKey := fmt.Sprintf( "%d-%d-%d", appt.AppointmentDate.Year(), appt.AppointmentDate.Month(), appt.AppointmentDate.Day())
+		bookedTimeSlotsMap[dateKey] = append(bookedTimeSlotsMap[dateKey], doctor.TimeSlot{Offset: offset, NumberOfPeerSlot: 1})
+	}
+	return bookedTimeSlotsMap
+}
+
+func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot  {
+	bookApptTimeSlotsMap := make(map[int]int)
+	for _, bts := range bookedTimeSlots {
+		bookApptTimeSlotsMap[bts.Offset] = bts.NumberOfPeerSlot
+	}
+
+	weekDay := targetDate.Weekday()
+	currentOffSet := targetDate.Hour() * 60 + targetDate.Minute()
+	amStartTimeOffset := 0
+	amEndTimeOffset := 0
+	pmStartTimeOffset := 0
+	pmEndTimeOffset := 0
+	if weekDay == time.Sunday {
+		amStartTimeOffset = setting.SundayAmStartTimeOffset
+		amEndTimeOffset = setting.SundayAmEndTimeOffset
+		pmStartTimeOffset = setting.SundayPmStartTimeOffset
+		pmEndTimeOffset = setting.SundayPmEndTimeOffset
+	} else if weekDay == time.Monday {
+		amStartTimeOffset = setting.MondayAmStartTimeOffset
+		amEndTimeOffset = setting.MondayAmEndTimeOffset
+		pmStartTimeOffset = setting.MondayPmStartTimeOffset
+		pmEndTimeOffset = setting.MondayPmEndTimeOffset
+	}  else if weekDay == time.Tuesday {
+		amStartTimeOffset = setting.TuesdayAmStartTimeOffset
+		amEndTimeOffset = setting.TuesdayAmEndTimeOffset
+		pmStartTimeOffset = setting.TuesdayPmStartTimeOffset
+		pmEndTimeOffset = setting.TuesdayPmEndTimeOffset
+	}  else if weekDay == time.Wednesday {
+		amStartTimeOffset = setting.WednesdayAmStartTimeOffset
+		amEndTimeOffset = setting.WednesdayAmEndTimeOffset
+		pmStartTimeOffset = setting.WednesdayPmStartTimeOffset
+		pmEndTimeOffset = setting.WednesdayPmEndTimeOffset
+	}  else if weekDay == time.Thursday {
+		amStartTimeOffset = setting.ThursdayAmStartTimeOffset
+		amEndTimeOffset = setting.ThursdayAmEndTimeOffset
+		pmStartTimeOffset = setting.ThursdayPmStartTimeOffset
+		pmEndTimeOffset = setting.ThursdayPmEndTimeOffset
+	}  else if weekDay == time.Friday {
+		amStartTimeOffset = setting.FridayAmStartTimeOffset
+		amEndTimeOffset = setting.FridayAmEndTimeOffset
+		pmStartTimeOffset = setting.FridayPmStartTimeOffset
+		pmEndTimeOffset = setting.FridayPmEndTimeOffset
+	}  else if weekDay == time.Saturday {
+		amStartTimeOffset = setting.SaturdayAmStartTimeOffset
+		amEndTimeOffset = setting.SaturdayAmEndTimeOffset
+		pmStartTimeOffset = setting.SaturdayPmStartTimeOffset
+		pmEndTimeOffset = setting.SaturdayPmEndTimeOffset
+	}
+
+	timeSlots := make([]doctor.TimeSlot, 0)
+	for i := amStartTimeOffset; i <= amEndTimeOffset + amStartTimeOffset; i += setting.DurationPerSlot {
+		if i < currentOffSet {
+			continue
+		}
+		timeSlot := doctor.TimeSlot{Offset: i, NumberOfPeerSlot: setting.NumberPerSlot}
+		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
+		availableNumber := setting.NumberPerSlot
+		if numberOfBooked >= timeSlot.NumberOfPeerSlot {
+			availableNumber = 0
+		} else {
+			availableNumber = timeSlot.NumberOfPeerSlot - numberOfBooked
+		}
+		timeSlot.NumberOfPeerSlot = availableNumber
+		timeSlots = append(timeSlots, timeSlot)
+	}
+	for i := pmStartTimeOffset + amStartTimeOffset; i <= pmEndTimeOffset + pmStartTimeOffset; i += setting.DurationPerSlot {
+		if i < currentOffSet {
+			continue
+		}
+		timeSlot := doctor.TimeSlot{Offset: i, NumberOfPeerSlot: setting.NumberPerSlot}
+		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
+		availableNumber := setting.NumberPerSlot
+		if numberOfBooked >= timeSlot.NumberOfPeerSlot {
+			availableNumber = 0
+		} else {
+			availableNumber = timeSlot.NumberOfPeerSlot - numberOfBooked
+		}
+		timeSlot.NumberOfPeerSlot = availableNumber
+		timeSlots = append(timeSlots, timeSlot)
+	}
+	return timeSlots
+}
+
+func getBookNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctor.TimeSlot) int {
+	bookedNumber := 0
+	for _, ts := range bookedTimeSlots {
+		if ts.Offset <= currentOffset && ts.Offset > currentOffset - duration {
+			bookedNumber = bookedNumber + 1
+		}
+	}
+	return bookedNumber
 }
 
 func (c *Controller) SaveDoctor() {

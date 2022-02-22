@@ -336,3 +336,20 @@ func (d *Dao) CalcAvailableTimeRangeByClosedDate(currentDateTime time.Time, star
 		return nil, nil
 	}
 }
+
+func (d *Dao) AddAppointment(appointment doctor.Appointments) error {
+	db := d.engine.Create(&appointment)
+	return db.Error
+}
+
+func (d *Dao) GetAppointmentByRange(
+	npi int64,
+	appointmentStatus constant.AppointmentStatus,
+	startDate time.Time,
+	endDate time.Time,
+	) []*doctor.Appointments {
+	var appts []*doctor.Appointments
+	_ = d.engine.Where("npi =? AND appointment_status = ? AND appointment_date >= ? AND appointment_date <= ?",
+			npi, appointmentStatus, startDate, endDate).Find(&appts)
+	return appts
+}

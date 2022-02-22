@@ -244,6 +244,10 @@ func (d *Dao)searchByDefault(lat float64, lon float64, q elastic.Query, page int
 	return totalHits, docs
 }
 
+func (d *Dao) GetDoctorTimeSlots(npi int64)  {
+
+}
+
 func (d *Dao) GetDoctorByPage(page int , pageSize int) []*doctor.Doctor {
 	var doctors []*doctor.Doctor
 	_ = d.mainEngine.Limit(pageSize).Offset(pageSize*(page - 1)).Find(&doctors)

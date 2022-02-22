@@ -194,3 +194,19 @@ func TestDao_GetDuplicateDoctorInfoFromES(t *testing.T) {
 		time.Sleep(time.Millisecond * 500)
 	}
 }
+
+func TestDao_AddAppointment(t *testing.T) {
+	appt := doctor.Appointments{
+		AppointmentDate: time.Date(2022, 2, 23, 3, 45, 0, 0, time.UTC),
+		Npi: testNpi,
+		AppointmentType: constant.InClinic,
+		AppointmentStatus: constant.Requested,
+		Memo: "This is a test memo!!",
+		TimeSlot: 0,
+		PatientID: 0,
+		CreatedDate: time.Now().UTC(),
+	}
+	if dao.AddAppointment(appt) != nil {
+		t.Errorf("add appointment failed")
+	}
+}

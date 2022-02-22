@@ -21,6 +21,13 @@ type Service interface {
 	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
 	IsExist(npi int64) bool
 	SyncDoctorToES(doctor * doctor.Doctor) error
+	AddAppointment(appointment doctor.Appointments) error
+	GetAppointmentByRange(
+		npi int64,
+		appointmentStatus constant.AppointmentStatus,
+		startDate time.Time,
+		endDate time.Time,
+	) []*doctor.Appointments
 }
 
 func NewService() Service {
@@ -104,4 +111,17 @@ func (s *service) IsExist(npi int64) bool {
 
 func (s *service) SyncDoctorToES(doctor * doctor.Doctor) error  {
 	return s.dao.SyncDoctorToES(doctor)
+}
+
+func (s *service) AddAppointment(appointment doctor.Appointments) error {
+	return s.dao.AddAppointment(appointment)
+}
+
+func (s *service) GetAppointmentByRange(
+	npi int64,
+	appointmentStatus constant.AppointmentStatus,
+	startDate time.Time,
+	endDate time.Time,
+) []*doctor.Appointments  {
+	return s.dao.GetAppointmentByRange(npi, appointmentStatus, startDate, endDate)
 }
