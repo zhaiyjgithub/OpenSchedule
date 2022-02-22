@@ -111,7 +111,7 @@ func (c *Controller) SearchDoctor()  {
 	}
 	settingsList := c.ScheduleService.GetSettingsByNpiList(npiList)
 	for _, setting := range settingsList {
-		timeSlots := c.GetDoctorTimeSlotsInRange(setting.Npi, startDate, dayLength)
+		timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDate, dayLength)
 		data = append(data, DoctorDetailInfo{
 			DoctorInfo: docMap[setting.Npi],
 			TimeSlots: timeSlots,
@@ -127,11 +127,10 @@ func (c *Controller) SearchDoctor()  {
 	})
 }
 
-func (c *Controller)GetDoctorTimeSlotsInRange(npi int64, startDate time.Time, len int) []viewModel.TimeSlotPeerDay {
+func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, startDate time.Time, len int) []viewModel.TimeSlotPeerDay {
 	endDate := startDate.AddDate(0,0, len - 1)
-	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(npi, startDate, endDate)
+	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(setting.Npi, startDate, endDate)
 	timeSlots := make([]viewModel.TimeSlotPeerDay, 0)
-	setting := c.ScheduleService.GetScheduleSettings(npi)
 	if setting != nil {
 		return timeSlots
 	}
