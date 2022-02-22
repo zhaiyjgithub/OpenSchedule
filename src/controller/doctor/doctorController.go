@@ -60,6 +60,7 @@ func (c *Controller) SearchDoctor()  {
 		Keyword string
 		AppointmentType constant.AppointmentType
 		StartDate string
+		Range int
 		EndDate string
 		Gender constant.Gender
 		Specialty string
@@ -68,7 +69,7 @@ func (c *Controller) SearchDoctor()  {
 		Lon float64
 		Distance int
 		Page int
-		PageSize   int
+		PageSize  int
 		SortByType constant.SortByType
 	}
 
@@ -91,25 +92,38 @@ func (c *Controller) SearchDoctor()  {
 		p.SortByType,
 		p.Distance)
 
+	type DoctorDetailInfo struct {
+		*viewModel.DoctorInfo
+		TimeSlots []viewModel.TimeSlotPeerDay
+	}
+	data := make([]DoctorDetailInfo, 0)
+	startDate, err := time.Parse(time.RFC3339, p.StartDate)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, "param: start date error", nil)
+		return
+	}
+	for _, doc := range docs {
+		timeSlots := c.GetDoctorTimeSlotsIn2Weeks(doc.Npi, startDate, p.Range)
+		data = append(data, DoctorDetailInfo{
+			DoctorInfo: doc,
+			TimeSlots: timeSlots,
+		})
+	}
+
 	response.Success(c.Ctx, response.Successful, struct {
 		Total int64 `json:"total"`
-		Data []*viewModel.DoctorInfo `json:"data"`
+		Data []DoctorDetailInfo`json:"data"`
 	}{
 		Total: total,
-		Data: docs,
+		Data: data,
 	})
 }
 
-func (c *Controller)GetDoctorTimeSlotsIn2Weeks(npi int64, startDate time.Time, len int)  {
-	type TimeSlotPeerDay struct {
-		Date time.Time
-		TimeSlots []doctor.TimeSlot
-	}
-
+func (c *Controller)GetDoctorTimeSlotsIn2Weeks(npi int64, startDate time.Time, len int) []viewModel.TimeSlotPeerDay {
 	endDate := startDate.AddDate(0,0, len - 1)
 	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(npi, startDate, endDate)
 	setting := c.ScheduleService.GetScheduleSettings(npi)
-	timeSlots := make([]TimeSlotPeerDay, 0)
+	timeSlots := make([]viewModel.TimeSlotPeerDay, 0)
 	for i := 0 ; i < len; i ++ {
 		targetDate := startDate.AddDate(0,0, i)
 		dateKey := fmt.Sprintf( "%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
@@ -120,9 +134,9 @@ func (c *Controller)GetDoctorTimeSlotsIn2Weeks(npi int64, startDate time.Time, l
 		} else {
 			timeSlotsPeerDay = c.GetDoctorTimeSlotsPeerDay(setting, targetDate, make([]doctor.TimeSlot, 0))
 		}
-		timeSlots = append(timeSlots, TimeSlotPeerDay{Date: targetDate, TimeSlots: timeSlotsPeerDay})
+		timeSlots = append(timeSlots, viewModel.TimeSlotPeerDay{Date: targetDate, TimeSlots: timeSlotsPeerDay})
 	}
-	fmt.Println(timeSlots)
+	return timeSlots
 }
 
 func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi int64, startDate time.Time, endTime time.Time) map[string][]doctor.TimeSlot {

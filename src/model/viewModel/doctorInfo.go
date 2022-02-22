@@ -3,6 +3,7 @@ package viewModel
 import (
 	"OpenSchedule/src/model/doctor"
 	"github.com/olivere/elastic/v7"
+	"time"
 )
 
 type Location struct {
@@ -17,3 +18,7 @@ type DoctorInfo struct {
 	NextAvailableDateVirtual string `json:"nextAvailableDateVirtual"`
 }
 
+type TimeSlotPeerDay struct {
+	Date time.Time
+	TimeSlots []doctor.TimeSlot
+}
