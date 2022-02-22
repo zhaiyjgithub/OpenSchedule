@@ -1,4 +1,5 @@
 package doctor
+
 import (
 	"OpenSchedule/src/constant"
 	"OpenSchedule/src/database"

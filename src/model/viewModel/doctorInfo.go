@@ -19,6 +19,6 @@ type DoctorInfo struct {
 }
 
 type TimeSlotPeerDay struct {
-	Date time.Time
-	TimeSlots []doctor.TimeSlot
+	Date time.Time `json:"date"`
+	TimeSlots []doctor.TimeSlot `json:"timeSlots"`
 }

@@ -60,7 +60,6 @@ func (c *Controller) SearchDoctor()  {
 		Keyword string
 		AppointmentType constant.AppointmentType
 		StartDate string
-		Range int
 		EndDate string
 		Gender constant.Gender
 		Specialty string
@@ -94,18 +93,27 @@ func (c *Controller) SearchDoctor()  {
 
 	type DoctorDetailInfo struct {
 		*viewModel.DoctorInfo
-		TimeSlots []viewModel.TimeSlotPeerDay
+		TimeSlots []viewModel.TimeSlotPeerDay `json:"timeSlots"`
 	}
 	data := make([]DoctorDetailInfo, 0)
 	startDate, err := time.Parse(time.RFC3339, p.StartDate)
+	endDate, err := time.Parse(time.RFC3339, p.EndDate)
 	if err != nil {
-		response.Fail(c.Ctx, response.Error, "param: start date error", nil)
+		response.Fail(c.Ctx, response.Error, "param error: start date or end date", nil)
 		return
 	}
+	dayLength := endDate.Day() - startDate.Day() + 1
+	npiList := make([]int64, 0)
+	docMap := make(map[int64]*viewModel.DoctorInfo)
 	for _, doc := range docs {
-		timeSlots := c.GetDoctorTimeSlotsIn2Weeks(doc.Npi, startDate, p.Range)
+		npiList = append(npiList, doc.Npi)
+		docMap[doc.Npi] = doc
+	}
+	settingsList := c.ScheduleService.GetSettingsByNpiList(npiList)
+	for _, setting := range settingsList {
+		timeSlots := c.GetDoctorTimeSlotsInRange(setting.Npi, startDate, dayLength)
 		data = append(data, DoctorDetailInfo{
-			DoctorInfo: doc,
+			DoctorInfo: docMap[setting.Npi],
 			TimeSlots: timeSlots,
 		})
 	}
@@ -119,11 +127,14 @@ func (c *Controller) SearchDoctor()  {
 	})
 }
 
-func (c *Controller)GetDoctorTimeSlotsIn2Weeks(npi int64, startDate time.Time, len int) []viewModel.TimeSlotPeerDay {
+func (c *Controller)GetDoctorTimeSlotsInRange(npi int64, startDate time.Time, len int) []viewModel.TimeSlotPeerDay {
 	endDate := startDate.AddDate(0,0, len - 1)
 	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(npi, startDate, endDate)
-	setting := c.ScheduleService.GetScheduleSettings(npi)
 	timeSlots := make([]viewModel.TimeSlotPeerDay, 0)
+	setting := c.ScheduleService.GetScheduleSettings(npi)
+	if setting != nil {
+		return timeSlots
+	}
 	for i := 0 ; i < len; i ++ {
 		targetDate := startDate.AddDate(0,0, i)
 		dateKey := fmt.Sprintf( "%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())

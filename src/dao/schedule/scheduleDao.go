@@ -348,8 +348,14 @@ func (d *Dao) GetAppointmentByRange(
 	startDate time.Time,
 	endDate time.Time,
 	) []*doctor.Appointments {
-	var appts []*doctor.Appointments
+	appts := make([]*doctor.Appointments, 0)
 	_ = d.engine.Where("npi =? AND appointment_status = ? AND appointment_date >= ? AND appointment_date <= ?",
 			npi, appointmentStatus, startDate, endDate).Find(&appts)
 	return appts
+}
+
+func (d *Dao) GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings {
+	list := make([]*doctor.ScheduleSettings, 0)
+	_ = d.engine.Where("npi IN ?", npiList).Find(&list)
+	return list
 }
