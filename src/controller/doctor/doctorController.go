@@ -131,7 +131,7 @@ func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, 
 	endDate := startDate.AddDate(0,0, len - 1)
 	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(setting.Npi, startDate, endDate)
 	timeSlots := make([]viewModel.TimeSlotPeerDay, 0)
-	if setting != nil {
+	if setting == nil {
 		return timeSlots
 	}
 	for i := 0 ; i < len; i ++ {

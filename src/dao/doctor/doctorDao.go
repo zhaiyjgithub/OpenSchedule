@@ -79,15 +79,15 @@ func (d *Dao) SearchDoctor(keyword string,
 		}
 		if len(startDate) > 0 {
 			if appointmentType == constant.InClinic {
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
 					Gte(startDate).Lte(endDate))
 			}else if appointmentType == constant.Virtual {
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
 					Gte(startDate).Lte(endDate))
 			} else {
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
 					Gte(startDate).Lte(endDate))
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
 					Gte(startDate).Lte(endDate))
 			}
 		}
@@ -110,15 +110,15 @@ func (d *Dao) SearchDoctor(keyword string,
 		}
 		if len(startDate) > 0 {
 			if appointmentType == constant.InClinic {
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
 					Gte(startDate).Lte(endDate))
 			}else if appointmentType == constant.Virtual {
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
 					Gte(startDate).Lte(endDate))
 			} else {
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateInClinic").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
 					Gte(startDate).Lte(endDate))
-				q.Filter(elastic.NewRangeQuery("NextAvailableDateVirtual").
+				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
 					Gte(startDate).Lte(endDate))
 			}
 		}

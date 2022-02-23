@@ -356,6 +356,9 @@ func (d *Dao) GetAppointmentByRange(
 
 func (d *Dao) GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings {
 	list := make([]*doctor.ScheduleSettings, 0)
+	if len(npiList) == 0 {
+		return list
+	}
 	_ = d.engine.Where("npi IN ?", npiList).Find(&list)
 	return list
 }
