@@ -5,6 +5,6 @@
 package doctor
 
 type TimeSlot struct {
-	Offset int `json:"offset"`
-	NumberOfPeerSlot int `json:"number_of_peer_slot"`
+	Offset               int `json:"offset"`
+	AvailableSlotsNumber int `json:"availableSlotsNumber"`
 }

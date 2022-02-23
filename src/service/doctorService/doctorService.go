@@ -11,8 +11,8 @@ import (
 type Service interface {
 	SearchDoctor(keyword string,
 		appointmentType constant.AppointmentType,
-		startDate string,
-		endDate string,
+		startDate interface{},
+		endDate interface{},
 		city string,
 		specialty string,
 		lat float64,
@@ -37,8 +37,8 @@ func NewService() Service {
 
 func (s *doctorService) SearchDoctor(keyword string,
 	appointmentType constant.AppointmentType,
-	startDate string,
-	endDate string,
+	startDate interface{},
+	endDate  interface{},
 	city string,
 	specialty string,
 	lat float64,

@@ -59,8 +59,8 @@ func (c *Controller) SearchDoctor()  {
 	type Param struct {
 		Keyword string
 		AppointmentType constant.AppointmentType
-		StartDate string
-		EndDate string
+		StartDate interface{}
+		EndDate interface{}
 		Gender constant.Gender
 		Specialty string
 		City string
@@ -96,13 +96,12 @@ func (c *Controller) SearchDoctor()  {
 		TimeSlots []viewModel.TimeSlotPeerDay `json:"timeSlots"`
 	}
 	data := make([]DoctorDetailInfo, 0)
-	startDate, err := time.Parse(time.RFC3339, p.StartDate)
-	endDate, err := time.Parse(time.RFC3339, p.EndDate)
+	startDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v", p.StartDate))
 	if err != nil {
-		response.Fail(c.Ctx, response.Error, "param error: start date or end date", nil)
+		response.Fail(c.Ctx, response.Error, "param error: start date", nil)
 		return
 	}
-	dayLength := endDate.Day() - startDate.Day() + 1
+	dayLength := 5//endDate.Day() - startDate.Day() + 1
 	npiList := make([]int64, 0)
 	docMap := make(map[int64]*viewModel.DoctorInfo)
 	for _, doc := range docs {
@@ -155,7 +154,7 @@ func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi int64, startDate t
 	for _, appt := range appts {
 		offset := appt.AppointmentDate.Hour() * 60 + appt.AppointmentDate.Minute()
 		dateKey := fmt.Sprintf( "%d-%d-%d", appt.AppointmentDate.Year(), appt.AppointmentDate.Month(), appt.AppointmentDate.Day())
-		bookedTimeSlotsMap[dateKey] = append(bookedTimeSlotsMap[dateKey], doctor.TimeSlot{Offset: offset, NumberOfPeerSlot: 1})
+		bookedTimeSlotsMap[dateKey] = append(bookedTimeSlotsMap[dateKey], doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
 	}
 	return bookedTimeSlotsMap
 }
@@ -163,7 +162,7 @@ func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi int64, startDate t
 func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot  {
 	bookApptTimeSlotsMap := make(map[int]int)
 	for _, bts := range bookedTimeSlots {
-		bookApptTimeSlotsMap[bts.Offset] = bts.NumberOfPeerSlot
+		bookApptTimeSlotsMap[bts.Offset] = bts.AvailableSlotsNumber
 	}
 
 	weekDay := targetDate.Weekday()
@@ -214,30 +213,30 @@ func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings,
 		if i < currentOffSet {
 			continue
 		}
-		timeSlot := doctor.TimeSlot{Offset: i, NumberOfPeerSlot: setting.NumberPerSlot}
+		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
 		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
-		if numberOfBooked >= timeSlot.NumberOfPeerSlot {
+		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
 			availableNumber = 0
 		} else {
-			availableNumber = timeSlot.NumberOfPeerSlot - numberOfBooked
+			availableNumber = timeSlot.AvailableSlotsNumber - numberOfBooked
 		}
-		timeSlot.NumberOfPeerSlot = availableNumber
+		timeSlot.AvailableSlotsNumber = availableNumber
 		timeSlots = append(timeSlots, timeSlot)
 	}
 	for i := pmStartTimeOffset + amStartTimeOffset; i <= pmEndTimeOffset + pmStartTimeOffset; i += setting.DurationPerSlot {
 		if i < currentOffSet {
 			continue
 		}
-		timeSlot := doctor.TimeSlot{Offset: i, NumberOfPeerSlot: setting.NumberPerSlot}
+		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
 		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
-		if numberOfBooked >= timeSlot.NumberOfPeerSlot {
+		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
 			availableNumber = 0
 		} else {
-			availableNumber = timeSlot.NumberOfPeerSlot - numberOfBooked
+			availableNumber = timeSlot.AvailableSlotsNumber - numberOfBooked
 		}
-		timeSlot.NumberOfPeerSlot = availableNumber
+		timeSlot.AvailableSlotsNumber = availableNumber
 		timeSlots = append(timeSlots, timeSlot)
 	}
 	return timeSlots

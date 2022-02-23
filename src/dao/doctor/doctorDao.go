@@ -34,8 +34,8 @@ func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *Dao {
 
 func (d *Dao) SearchDoctor(keyword string,
 	appointmentType constant.AppointmentType,
-	startDate string,
-	endDate string,
+	startDate interface{},
+	endDate interface{},
 	city string,
 	specialty string,
 	lat float64,
@@ -77,20 +77,7 @@ func (d *Dao) SearchDoctor(keyword string,
 		if gender != constant.Trans {
 			q.Filter(elastic.NewTermQuery("Gender", gender))
 		}
-		if len(startDate) > 0 {
-			if appointmentType == constant.InClinic {
-				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
-					Gte(startDate).Lte(endDate))
-			}else if appointmentType == constant.Virtual {
-				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
-					Gte(startDate).Lte(endDate))
-			} else {
-				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
-					Gte(startDate).Lte(endDate))
-				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
-					Gte(startDate).Lte(endDate))
-			}
-		}
+		q = AddDateRangeQuery(q, appointmentType, startDate, endDate)
 	}else {
 		if appointmentType == constant.InClinic {
 			q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
@@ -108,20 +95,7 @@ func (d *Dao) SearchDoctor(keyword string,
 		if gender != constant.Trans {
 			q.Filter(elastic.NewTermQuery("Gender", gender))
 		}
-		if len(startDate) > 0 {
-			if appointmentType == constant.InClinic {
-				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
-					Gte(startDate).Lte(endDate))
-			}else if appointmentType == constant.Virtual {
-				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
-					Gte(startDate).Lte(endDate))
-			} else {
-				q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
-					Gte(startDate).Lte(endDate))
-				q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
-					Gte(startDate).Lte(endDate))
-			}
-		}
+		q = AddDateRangeQuery(q, appointmentType, startDate, endDate)
 	}
 
 	defaultDistance := 1000 //default radius = 1000km for near by
@@ -139,6 +113,22 @@ func (d *Dao) SearchDoctor(keyword string,
 		total, docs = d.searchByDefault(lat, lon, q, page, pageSize)
 	}
 	return total, docs
+}
+
+func AddDateRangeQuery(q *elastic.BoolQuery, appointmentType constant.AppointmentType, startDate interface{}, endDate interface{}) *elastic.BoolQuery  {
+	if appointmentType == constant.InClinic {
+		q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
+			Gte(startDate).Lte(endDate))
+	}else if appointmentType == constant.Virtual {
+		q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
+			Gte(startDate).Lte(endDate))
+	} else {
+		q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
+			Gte(startDate).Lte(endDate))
+		q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
+			Gte(startDate).Lte(endDate))
+	}
+	return q
 }
 
 func (d *Dao)searchByDistance(lat float64, lon float64, q elastic.Query, page int , pageSize int) (int64, []*viewModel.DoctorInfo) {

@@ -23,8 +23,8 @@ var c = &Controller{
 func TestController_GetDoctorTimeSlotsPeerDay(t *testing.T) {
 	booked := make([]doctor.TimeSlot, 0)
 	booked = append(booked, doctor.TimeSlot{
-		NumberOfPeerSlot: 3,
-		Offset: 55,
+		AvailableSlotsNumber: 3,
+		Offset:               55,
 	})
 	setting := c.ScheduleService.GetScheduleSettings(testNpi)
 	allTimeSlots := c.GetDoctorTimeSlotsPeerDay(setting, time.Date(2022, 2, 23, 0, 45, 0, 0, time.UTC), booked)
