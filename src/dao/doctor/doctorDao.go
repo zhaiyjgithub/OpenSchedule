@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"reflect"
+	"time"
 )
 
 type ScriptLocation struct {
@@ -34,8 +35,6 @@ func NewDoctorDao(engine *elastic.Client, mainEngine *gorm.DB) *Dao {
 
 func (d *Dao) SearchDoctor(keyword string,
 	appointmentType constant.AppointmentType,
-	startDate interface{},
-	endDate interface{},
 	city string,
 	specialty string,
 	lat float64,
@@ -77,7 +76,7 @@ func (d *Dao) SearchDoctor(keyword string,
 		if gender != constant.Trans {
 			q.Filter(elastic.NewTermQuery("Gender", gender))
 		}
-		q = AddDateRangeQuery(q, appointmentType, startDate, endDate)
+		q = AddDateRangeQuery(q, appointmentType)
 	}else {
 		if appointmentType == constant.InClinic {
 			q.Filter(elastic.NewTermQuery("IsInClinicBookEnable", isInClinicEnable))
@@ -95,7 +94,7 @@ func (d *Dao) SearchDoctor(keyword string,
 		if gender != constant.Trans {
 			q.Filter(elastic.NewTermQuery("Gender", gender))
 		}
-		q = AddDateRangeQuery(q, appointmentType, startDate, endDate)
+		q = AddDateRangeQuery(q, appointmentType)
 	}
 
 	defaultDistance := 1000 //default radius = 1000km for near by
@@ -115,18 +114,19 @@ func (d *Dao) SearchDoctor(keyword string,
 	return total, docs
 }
 
-func AddDateRangeQuery(q *elastic.BoolQuery, appointmentType constant.AppointmentType, startDate interface{}, endDate interface{}) *elastic.BoolQuery  {
+func AddDateRangeQuery(q *elastic.BoolQuery, appointmentType constant.AppointmentType) *elastic.BoolQuery  {
+	currentTime := time.Now().UTC().Format(time.RFC3339)
 	if appointmentType == constant.InClinic {
 		q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
-			Gte(startDate).Lte(endDate))
+			Gte(currentTime))
 	}else if appointmentType == constant.Virtual {
 		q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
-			Gte(startDate).Lte(endDate))
+			Gte(currentTime))
 	} else {
 		q.Should(elastic.NewRangeQuery("NextAvailableDateInClinic").
-			Gte(startDate).Lte(endDate))
+			Gte(currentTime))
 		q.Should(elastic.NewRangeQuery("NextAvailableDateVirtual").
-			Gte(startDate).Lte(endDate))
+			Gte(currentTime))
 	}
 	return q
 }

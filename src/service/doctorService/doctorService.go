@@ -11,8 +11,6 @@ import (
 type Service interface {
 	SearchDoctor(keyword string,
 		appointmentType constant.AppointmentType,
-		startDate interface{},
-		endDate interface{},
 		city string,
 		specialty string,
 		lat float64,
@@ -37,8 +35,6 @@ func NewService() Service {
 
 func (s *doctorService) SearchDoctor(keyword string,
 	appointmentType constant.AppointmentType,
-	startDate interface{},
-	endDate  interface{},
 	city string,
 	specialty string,
 	lat float64,
@@ -49,8 +45,6 @@ func (s *doctorService) SearchDoctor(keyword string,
 	return s.dao.SearchDoctor(
 		keyword,
 		appointmentType,
-		startDate,
-		endDate,
 		city,
 		specialty,
 		lat,

@@ -59,8 +59,7 @@ func (c *Controller) SearchDoctor()  {
 	type Param struct {
 		Keyword string
 		AppointmentType constant.AppointmentType
-		StartDate interface{}
-		EndDate interface{}
+		StartDate string
 		Gender constant.Gender
 		Specialty string
 		City string
@@ -79,8 +78,6 @@ func (c *Controller) SearchDoctor()  {
 	total, doctorInfoList := c.DoctorService.SearchDoctor(
 		p.Keyword,
 		p.AppointmentType,
-		p.StartDate,
-		p.EndDate,
 		p.City,
 		p.Specialty,
 		p.Lat,

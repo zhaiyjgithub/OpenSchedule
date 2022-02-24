@@ -124,7 +124,7 @@ func (d *Dao) GetDuplicateDoctorInfoFromES(npi int64) []string {
 	return esIds
 }
 
-func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings *doctor.ScheduleSettings) (string)  {
+func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings *doctor.ScheduleSettings) string  {
 	duration := settings.DurationPerSlot
 	number := settings.NumberPerSlot
 	nextAvailableDate := ""
