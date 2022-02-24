@@ -76,7 +76,7 @@ func (c *Controller) SearchDoctor()  {
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	total, docs := c.DoctorService.SearchDoctor(
+	total, doctorInfoList := c.DoctorService.SearchDoctor(
 		p.Keyword,
 		p.AppointmentType,
 		p.StartDate,
@@ -103,18 +103,24 @@ func (c *Controller) SearchDoctor()  {
 	}
 	dayLength := 5//endDate.Day() - startDate.Day() + 1
 	npiList := make([]int64, 0)
-	docMap := make(map[int64]*viewModel.DoctorInfo)
-	for _, doc := range docs {
-		npiList = append(npiList, doc.Npi)
-		docMap[doc.Npi] = doc
+	for _, docInfo := range doctorInfoList {
+		npiList = append(npiList, docInfo.Npi)
 	}
 	settingsList := c.ScheduleService.GetSettingsByNpiList(npiList)
+	settingMap := make(map[int64]*doctor.ScheduleSettings)
 	for _, setting := range settingsList {
-		timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDate, dayLength)
-		data = append(data, DoctorDetailInfo{
-			DoctorInfo: docMap[setting.Npi],
-			TimeSlots: timeSlots,
-		})
+		settingMap[setting.Npi] = setting
+	}
+	for _, docInfo := range doctorInfoList {
+		setting, ok := settingMap[docInfo.Npi]
+		if ok {
+			timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDate, dayLength)
+			data = append(data, DoctorDetailInfo{
+				DoctorInfo: docInfo,
+				TimeSlots: timeSlots,
+			})
+		}
+		
 	}
 
 	response.Success(c.Ctx, response.Successful, struct {
@@ -166,7 +172,6 @@ func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings,
 	}
 
 	weekDay := targetDate.Weekday()
-	currentOffSet := targetDate.Hour() * 60 + targetDate.Minute()
 	amStartTimeOffset := 0
 	amEndTimeOffset := 0
 	pmStartTimeOffset := 0
@@ -206,6 +211,11 @@ func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings,
 		amEndTimeOffset = setting.SaturdayAmEndTimeOffset
 		pmStartTimeOffset = setting.SaturdayPmStartTimeOffset
 		pmEndTimeOffset = setting.SaturdayPmEndTimeOffset
+	}
+
+	currentOffSet := 0
+	if time.Now().UTC().Day() == targetDate.Day() {
+		currentOffSet = targetDate.Hour() * 60 + targetDate.Minute()
 	}
 
 	timeSlots := make([]doctor.TimeSlot, 0)
