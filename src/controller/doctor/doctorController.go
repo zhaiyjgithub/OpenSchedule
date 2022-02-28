@@ -90,14 +90,15 @@ func (c *Controller) SearchDoctor()  {
 
 	type DoctorDetailInfo struct {
 		*viewModel.DoctorInfo
-		TimeSlots []viewModel.TimeSlotPeerDay `json:"timeSlots"`
+		TimeSlots []viewModel.TimeSlotPerDay `json:"timeSlotsPerDay"`
 	}
 	data := make([]DoctorDetailInfo, 0)
-	startDate, err := time.Parse(time.RFC3339, fmt.Sprintf("%v", p.StartDate))
+	startDate, err := time.Parse(time.RFC3339, p.StartDate)
 	if err != nil {
 		response.Fail(c.Ctx, response.Error, "param error: start date", nil)
 		return
 	}
+	startDateZero := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
 	dayLength := 5//endDate.Day() - startDate.Day() + 1
 	npiList := make([]int64, 0)
 	for _, docInfo := range doctorInfoList {
@@ -111,13 +112,12 @@ func (c *Controller) SearchDoctor()  {
 	for _, docInfo := range doctorInfoList {
 		setting, ok := settingMap[docInfo.Npi]
 		if ok {
-			timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDate, dayLength)
+			timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, dayLength)
 			data = append(data, DoctorDetailInfo{
 				DoctorInfo: docInfo,
 				TimeSlots: timeSlots,
 			})
 		}
-		
 	}
 
 	response.Success(c.Ctx, response.Successful, struct {
@@ -129,10 +129,10 @@ func (c *Controller) SearchDoctor()  {
 	})
 }
 
-func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, startDate time.Time, len int) []viewModel.TimeSlotPeerDay {
+func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, startDate time.Time, len int) []viewModel.TimeSlotPerDay {
 	endDate := startDate.AddDate(0,0, len - 1)
 	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(setting.Npi, startDate, endDate)
-	timeSlots := make([]viewModel.TimeSlotPeerDay, 0)
+	timeSlots := make([]viewModel.TimeSlotPerDay, 0)
 	if setting == nil {
 		return timeSlots
 	}
@@ -146,7 +146,7 @@ func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, 
 		} else {
 			timeSlotsPeerDay = c.GetDoctorTimeSlotsPeerDay(setting, targetDate, make([]doctor.TimeSlot, 0))
 		}
-		timeSlots = append(timeSlots, viewModel.TimeSlotPeerDay{Date: targetDate, TimeSlots: timeSlotsPeerDay})
+		timeSlots = append(timeSlots, viewModel.TimeSlotPerDay{Date: targetDate, TimeSlots: timeSlotsPeerDay})
 	}
 	return timeSlots
 }

@@ -18,7 +18,7 @@ type DoctorInfo struct {
 	NextAvailableDateVirtual string `json:"nextAvailableDateVirtual"`
 }
 
-type TimeSlotPeerDay struct {
+type TimeSlotPerDay struct {
 	Date time.Time `json:"date"`
 	TimeSlots []doctor.TimeSlot `json:"timeSlots"`
 }
