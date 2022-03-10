@@ -8,6 +8,7 @@ const (
 	SearchDoctor = "/SearchDoctor"
 	GetDoctor = "/GetDoctor"
 	SaveDoctor = "/SaveDoctor"
+	GetTimeSlots = "/GetTimeSlots"
 )
 
 const (

@@ -26,6 +26,7 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(http.MethodPost, router.SearchDoctor, "SearchDoctor")
 	b.Handle(http.MethodPost, router.GetDoctor, "GetDoctor")
 	b.Handle(http.MethodPost, router.SaveDoctor, "SaveDoctor")
+	b.Handle(http.MethodPost, router.GetTimeSlots, "GetTimeSlots")
 }
 
 func (c *Controller) GetDoctor()  {
@@ -127,6 +128,32 @@ func (c *Controller) SearchDoctor()  {
 		Total: total,
 		Data: data,
 	})
+}
+
+func (c * Controller) GetTimeSlots()  {
+	type Param struct {
+		Npi int64 `json:"npi"`
+		StartDate string `json:"startDate"`
+		Range int `json:"range"`
+	}
+	var p Param
+	err := utils.ValidateParam(c.Ctx, &p)
+	if err != nil {
+		return
+	}
+	startDate, err := time.Parse(time.RFC3339, p.StartDate)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, "param error: start date", nil)
+		return
+	}
+	startDateZero := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
+	setting := c.ScheduleService.GetScheduleSettings(p.Npi)
+	if setting == nil {
+		response.Fail(c.Ctx, response.Error, response.NotFound, nil)
+		return
+	}
+	timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, p.Range)
+	response.Success(c.Ctx, response.Successful, timeSlots)
 }
 
 func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, startDate time.Time, len int) []viewModel.TimeSlotPerDay {

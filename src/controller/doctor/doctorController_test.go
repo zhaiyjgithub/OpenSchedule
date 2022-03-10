@@ -38,9 +38,4 @@ func TestController_ConvertBookedAppointmentsToTimeSlots(t *testing.T) {
 	fmt.Println(bookedTimeSlots)
 }
 
-func TestController_GetDoctorTimeSlotsIn2Weeks(t *testing.T) {
-	startDate := time.Date(2022, 2, 20, 0, 0, 0, 0, time.UTC)
-	c.GetDoctorTimeSlotsIn2Weeks(testNpi, startDate, 7)
-}
-
 
