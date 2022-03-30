@@ -28,6 +28,12 @@ type Service interface {
 		startDate time.Time,
 		endDate time.Time,
 	) []*doctor.Appointments
+	GetAppointmentsByRange(
+		npi []int64,
+		appointmentStatus constant.AppointmentStatus,
+		startDate time.Time,
+		endDate time.Time,
+	) []*doctor.Appointments
 	GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings
 }
 
@@ -125,6 +131,15 @@ func (s *service) GetAppointmentByRange(
 	endDate time.Time,
 ) []*doctor.Appointments  {
 	return s.dao.GetAppointmentByRange(npi, appointmentStatus, startDate, endDate)
+}
+
+func (s *service) GetAppointmentsByRange(
+	npi []int64,
+	appointmentStatus constant.AppointmentStatus,
+	startDate time.Time,
+	endDate time.Time,
+) []*doctor.Appointments  {
+	return s.dao.GetAppointmentsByRange(npi, appointmentStatus, startDate, endDate)
 }
 
 func (s *service) GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings  {

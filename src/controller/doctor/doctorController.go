@@ -110,10 +110,17 @@ func (c *Controller) SearchDoctor()  {
 	for _, setting := range settingsList {
 		settingMap[setting.Npi] = setting
 	}
+
+	endDate := startDate.AddDate(0,0, 4)
+	allBookedTimeSlots := c.ConvertBookedAppointmentsToTimeSlots(npiList, startDate, endDate)
 	for _, docInfo := range doctorInfoList {
 		setting, ok := settingMap[docInfo.Npi]
 		if ok {
-			timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, dayLength)
+			bookedTimeSlotsForNpi, ok := allBookedTimeSlots[setting.Npi]
+			if !ok {
+				bookedTimeSlotsForNpi = make(map[string][]doctor.TimeSlot)
+			}
+			timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, dayLength, bookedTimeSlotsForNpi)
 			data = append(data, DoctorDetailInfo{
 				DoctorInfo: docInfo,
 				TimeSlots: timeSlots,
@@ -152,13 +159,18 @@ func (c * Controller) GetTimeSlots()  {
 		response.Fail(c.Ctx, response.Error, response.NotFound, nil)
 		return
 	}
-	timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, p.Range)
+	endDate := startDate.AddDate(0,0, p.Range - 1)
+	npi := []int64{setting.Npi}
+	allBookedTimeSlots := c.ConvertBookedAppointmentsToTimeSlots(npi, startDate, endDate)
+	bookedTimeSlotsForNpi, ok := allBookedTimeSlots[setting.Npi]
+	if !ok {
+		bookedTimeSlotsForNpi = make(map[string][]doctor.TimeSlot)
+	}
+	timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, p.Range, bookedTimeSlotsForNpi)
 	response.Success(c.Ctx, response.Successful, timeSlots)
 }
 
-func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, startDate time.Time, len int) []viewModel.TimeSlotPerDay {
-	endDate := startDate.AddDate(0,0, len - 1)
-	bookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(setting.Npi, startDate, endDate)
+func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, startDate time.Time, len int, allBookedTimeSlots map[string][]doctor.TimeSlot) []viewModel.TimeSlotPerDay {
 	timeSlots := make([]viewModel.TimeSlotPerDay, 0)
 	if setting == nil {
 		return timeSlots
@@ -166,7 +178,7 @@ func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, 
 	for i := 0 ; i < len; i ++ {
 		targetDate := startDate.AddDate(0,0, i)
 		dateKey := fmt.Sprintf( "%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
-		bookedTimeSlots, ok := bookedTimeSlotsMap[dateKey]
+		bookedTimeSlots, ok := allBookedTimeSlots[dateKey]
 		timeSlotsPeerDay := make([]doctor.TimeSlot, 0)
 		if ok {
 			timeSlotsPeerDay = c.GetDoctorTimeSlotsPeerDay(setting, targetDate, bookedTimeSlots)
@@ -178,19 +190,27 @@ func (c *Controller)GetDoctorTimeSlotsInRange(setting *doctor.ScheduleSettings, 
 	return timeSlots
 }
 
-func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi int64, startDate time.Time, endTime time.Time) map[string][]doctor.TimeSlot {
-	appts := c.ScheduleService.GetAppointmentByRange(npi, constant.Requested, startDate, endTime)
-	bookedTimeSlotsMap := make(map[string][]doctor.TimeSlot)
+func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctor.TimeSlot {
+	appts := c.ScheduleService.GetAppointmentsByRange(npi, constant.Requested, startDate, endTime)
+	allBookedTimeSlots := make(map[int64]map[string][]doctor.TimeSlot)
 	for _, appt := range appts {
+		bookedTimeSlotsPerNpi, ok := allBookedTimeSlots[appt.Npi]
 		offset := appt.AppointmentDate.Hour() * 60 + appt.AppointmentDate.Minute()
 		dateKey := fmt.Sprintf( "%d-%d-%d", appt.AppointmentDate.Year(), appt.AppointmentDate.Month(), appt.AppointmentDate.Day())
-		bookedTimeSlotsMap[dateKey] = append(bookedTimeSlotsMap[dateKey], doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
+		if !ok {
+			bookedTimeSlotsPerNpi = make(map[string][]doctor.TimeSlot)
+			bookedTimeSlotsPerNpi[dateKey] = []doctor.TimeSlot{doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1}}
+		} else {
+			bookedTimeSlotsPerNpi[dateKey] = append(bookedTimeSlotsPerNpi[dateKey], doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
+		}
+		allBookedTimeSlots[appt.Npi] = bookedTimeSlotsPerNpi
 	}
-	return bookedTimeSlotsMap
+	return allBookedTimeSlots
 }
 
 func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot  {
 	bookApptTimeSlotsMap := make(map[int]int)
+	// Calc the available number of each time slot for the certain date
 	for _, bts := range bookedTimeSlots {
 		bookApptTimeSlotsMap[bts.Offset] = bts.AvailableSlotsNumber
 	}
