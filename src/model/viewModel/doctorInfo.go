@@ -18,7 +18,22 @@ type DoctorInfo struct {
 	NextAvailableDateVirtual string `json:"nextAvailableDateVirtual"`
 }
 
+type DoctorDetailInfo struct {
+	doctor.Doctor
+	Lat float64 `json:"lat"`
+	Lng float64 `json:"lng"`
+	Language string `json:"language"`
+	Awards []doctor.Awards `json:"awards"`
+	Certifications []doctor.Certifications `json:"certifications"`
+	Educations []doctor.Educations `json:"educations"`
+}
+
 type TimeSlotPerDay struct {
 	Date time.Time `json:"date"`
 	TimeSlots []doctor.TimeSlot `json:"timeSlots"`
+}
+
+type BackgroundInfo struct {
+	Name string `json:"name"`
+	Desc string `json:"desc"`
 }

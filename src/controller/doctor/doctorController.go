@@ -27,6 +27,7 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation)  {
 	b.Handle(http.MethodPost, router.GetDoctor, "GetDoctor")
 	b.Handle(http.MethodPost, router.SaveDoctor, "SaveDoctor")
 	b.Handle(http.MethodPost, router.GetTimeSlots, "GetTimeSlots")
+	b.Handle(http.MethodPost, router.GetDoctorDetailInfo, "GetDoctorDetailInfo")
 }
 
 func (c *Controller) GetDoctor()  {
@@ -209,12 +210,6 @@ func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi []int64, startDate
 }
 
 func (c *Controller) GetDoctorTimeSlotsPeerDay(setting *doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot  {
-	bookApptTimeSlotsMap := make(map[int]int)
-	// Calc the available number of each time slot for the certain date
-	for _, bts := range bookedTimeSlots {
-		bookApptTimeSlotsMap[bts.Offset] = bts.AvailableSlotsNumber
-	}
-
 	weekDay := targetDate.Weekday()
 	amStartTimeOffset := 0
 	amEndTimeOffset := 0
@@ -323,4 +318,22 @@ func (c *Controller) SaveDoctor() {
 		return
 	}
 	response.Success(c.Ctx, response.Successful, nil)
+}
+
+func (c *Controller) GetDoctorDetailInfo()  {
+	type Param struct {
+		Npi int64
+	}
+
+	var p Param
+	err := utils.ValidateParam(c.Ctx, &p)
+	if err != nil {
+		return
+	}
+	doc := c.DoctorService.GetDoctorDetail(p.Npi)
+	doc.Awards = c.DoctorService.GetAwards(p.Npi)
+	doc.Certifications= c.DoctorService.GetCertification(p.Npi)
+	doc.Educations = c.DoctorService.GetEducation(p.Npi)
+
+	response.Success(c.Ctx, response.Successful, doc)
 }

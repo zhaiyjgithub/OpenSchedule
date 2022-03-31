@@ -23,6 +23,11 @@ type Service interface {
 	IsExist(npi int64) bool
 	GetDoctor(npi int64) doctor.Doctor
 	SaveDoctor(doc *doctor.Doctor) error
+	GetClinic(npi int64) []doctor.Clinicals
+	GetAwards(npi int64) []doctor.Awards
+	GetCertification(npi int64) []doctor.Certifications
+	GetEducation(npi int64) []doctor.Educations
+	GetDoctorDetail(npi int64) viewModel.DoctorDetailInfo
 }
 
 type doctorService struct {
@@ -68,4 +73,24 @@ func (s *doctorService) GetDoctor(npi int64) doctor.Doctor  {
 
 func (s *doctorService) SaveDoctor(doc *doctor.Doctor) error  {
 	return s.dao.SaveDoctor(doc)
+}
+
+func (s *doctorService) GetClinic(npi int64) []doctor.Clinicals {
+	return s.dao.GetClinic(npi)
+}
+
+func (s *doctorService) GetAwards(npi int64) []doctor.Awards {
+	return s.dao.GetAwards(npi)
+}
+
+func (s *doctorService) GetCertification(npi int64) []doctor.Certifications {
+	return s.dao.GetCertification(npi)
+}
+
+func (s *doctorService) GetEducation(npi int64) []doctor.Educations {
+	return s.dao.GetEducation(npi)
+}
+
+func (s *doctorService) GetDoctorDetail(npi int64) viewModel.DoctorDetailInfo  {
+	return s.dao.GetDoctorDetail(npi)
 }

@@ -251,6 +251,12 @@ func (d *Dao) GetDoctor(npi int64) doctor.Doctor {
 	return doc
 }
 
+func (d *Dao) GetDoctorDetail(npi int64) viewModel.DoctorDetailInfo  {
+	var doctor viewModel.DoctorDetailInfo
+	_ = d.mainEngine.Raw("select d.*, g.lat, g.lng, l.lang as lang from doctors d left join geos g on d.npi = g.npi left join langs l on d.npi = l.npi where d.npi = ?", npi).Scan(&doctor)
+	return doctor
+}
+
 func (d *Dao) IsExist(npi int64) bool {
 	var count int64
 	_ = d.mainEngine.Model(&doctor.Doctor{}).Where("npi = ?",  npi).Count(&count)
@@ -266,4 +272,34 @@ func (d *Dao) SaveDoctor(doc *doctor.Doctor) error {
 	doc.ID = doctor.ID
 	db = d.mainEngine.Save(doc)
 	return db.Error
+}
+
+func (d *Dao) GetAffiliation(npi int64) []doctor.Affiliations {
+	list := make([]doctor.Affiliations, 0)
+	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
+	return list
+}
+
+func (d *Dao) GetClinic(npi int64) []doctor.Clinicals {
+	list := make([]doctor.Clinicals, 0)
+	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
+	return list
+}
+
+func (d *Dao) GetAwards(npi int64) []doctor.Awards {
+	list := make([]doctor.Awards, 0)
+	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
+	return list
+}
+
+func (d *Dao) GetCertification(npi int64) []doctor.Certifications {
+	list := make([]doctor.Certifications, 0)
+	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
+	return list
+}
+
+func (d *Dao) GetEducation(npi int64) []doctor.Educations {
+	list := make([]doctor.Educations, 0)
+	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
+	return list
 }
