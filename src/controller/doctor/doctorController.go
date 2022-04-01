@@ -334,6 +334,7 @@ func (c *Controller) GetDoctorDetailInfo()  {
 	doc.Awards = c.DoctorService.GetAwards(p.Npi)
 	doc.Certifications= c.DoctorService.GetCertification(p.Npi)
 	doc.Educations = c.DoctorService.GetEducation(p.Npi)
+	doc.Insurances = c.DoctorService.GetInsurance(p.Npi)
 
 	response.Success(c.Ctx, response.Successful, doc)
 }

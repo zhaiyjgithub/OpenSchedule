@@ -26,6 +26,7 @@ type DoctorDetailInfo struct {
 	Awards []doctor.Awards `json:"awards"`
 	Certifications []doctor.Certifications `json:"certifications"`
 	Educations []doctor.Educations `json:"educations"`
+	Insurances []doctor.Insurances `json:"insurances"`
 }
 
 type TimeSlotPerDay struct {

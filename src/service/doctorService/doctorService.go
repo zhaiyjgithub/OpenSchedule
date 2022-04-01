@@ -27,7 +27,9 @@ type Service interface {
 	GetAwards(npi int64) []doctor.Awards
 	GetCertification(npi int64) []doctor.Certifications
 	GetEducation(npi int64) []doctor.Educations
+	GetInsurance(npi int64) []doctor.Insurances
 	GetDoctorDetail(npi int64) viewModel.DoctorDetailInfo
+
 }
 
 type doctorService struct {
@@ -89,6 +91,10 @@ func (s *doctorService) GetCertification(npi int64) []doctor.Certifications {
 
 func (s *doctorService) GetEducation(npi int64) []doctor.Educations {
 	return s.dao.GetEducation(npi)
+}
+
+func (s *doctorService) GetInsurance(npi int64) []doctor.Insurances {
+	return s.dao.GetInsurance(npi)
 }
 
 func (s *doctorService) GetDoctorDetail(npi int64) viewModel.DoctorDetailInfo  {

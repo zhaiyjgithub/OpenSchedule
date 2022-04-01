@@ -11,7 +11,9 @@ import (
 	"github.com/olivere/elastic/v7"
 	"gorm.io/gorm"
 	"log"
+	"math/rand"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -302,4 +304,65 @@ func (d *Dao) GetEducation(npi int64) []doctor.Educations {
 	list := make([]doctor.Educations, 0)
 	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
 	return list
+}
+
+func (d *Dao) GetInsurance(npi int64) []doctor.Insurances {
+	list := make([]doctor.Insurances, 0)
+	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
+	return list
+}
+
+func getRandList() []string {
+	list := []string{
+		"Aetna Choice POS II",
+		"Aetna HMO",
+		"BCBS Blue Card PPO",
+		"CIGNA HMO",
+		"CIGNA Open Access",
+		"CIGNA PPO",
+		"Empire BCBS HMO",
+		"Empire BCBS PPO",
+		"GHI PPO",
+		"HIP of New York - Select PPO",
+		"Humana ChoiceCare Network PPO",
+		"MagnaCare PPO",
+		"MVP Healthcare PPO",
+		"Oxford Health Freedom",
+		"Oxford Health Liberty",
+		"United Healthcare - Direct Choice Plus POS",
+		"United Healthcare - Direct Options PPO",
+	}
+	length := rand.Intn(len(list))
+	if length == 0 {
+		length = 4
+	}
+	randList := make([]string, 0)
+
+	for i := 0; i < length; i ++ {
+		randList = append(randList, list[rand.Intn(len(list) - 1)])
+	}
+	return randList
+}
+
+func (d *Dao) SyncInsurance() {
+	page := 0
+	pageSize := 100
+	for ;; {
+		npiList := make([]int64, 0)
+		_ = d.mainEngine.Raw("select npi from doctors limit ? offset ? ", pageSize, page*pageSize).Scan(&npiList)
+		insuranceList:= make([]doctor.Insurances, 0)
+		for _, npi:= range npiList {
+			insuranceList = append(insuranceList, doctor.Insurances{
+				Name: strings.Join(getRandList(), ", "),
+				Npi: npi,
+			})
+		}
+		fmt.Println("Begin to insert: ", page)
+		d.mainEngine.Create(&insuranceList)
+		if len(npiList) < pageSize {
+			fmt.Println("Completely: ", page)
+			break
+		}
+		page = page + 1
+	}
 }

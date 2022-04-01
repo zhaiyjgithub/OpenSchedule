@@ -11,5 +11,5 @@ import (
 
 var dao = NewDoctorDao(database.GetElasticSearchEngine(), database.GetMySqlEngine())
 func TestDao_SearchDoctor(t *testing.T) {
-	//
+	dao.SyncInsurance()
 }
