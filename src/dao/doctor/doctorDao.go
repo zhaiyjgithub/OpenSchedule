@@ -306,10 +306,10 @@ func (d *Dao) GetEducation(npi int64) []doctor.Educations {
 	return list
 }
 
-func (d *Dao) GetInsurance(npi int64) []doctor.Insurances {
-	list := make([]doctor.Insurances, 0)
-	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
-	return list
+func (d *Dao) GetInsurance(npi int64) string {
+	var insuranceName string
+	_ = d.mainEngine.Model(doctor.Insurances{}).Select("name").Where("npi = ?", npi).Find(&insuranceName)
+	return insuranceName
 }
 
 func getRandList() []string {

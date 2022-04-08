@@ -20,3 +20,9 @@ const (
 	DeleteClosedDateSettings = "/DeleteClosedDateSettings"
 	GetClosedDateSettings = "/GetClosedDateSettings"
 )
+
+const (
+	User = AnyHealthService + "/User"
+	CreateUser = "/CreateUser"
+	GetUserByEmail = "/GetUserByEmail"
+)
