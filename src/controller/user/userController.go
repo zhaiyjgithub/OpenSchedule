@@ -28,7 +28,7 @@ func (c *Controller) CreateUser() {
 		Gender	string	`validate:"required,oneof=F M" json:"gender"`
 		Birthday string `validate:"required,len=10" json:"birthday"`
 		Email	string	`validate:"email,required" json:"email"`
-		Password	string	`validate:"len=32" json:"password"`
+		Password	string	`json:"password"`
 	}
 
 	var p Param
@@ -45,11 +45,11 @@ func (c *Controller) CreateUser() {
 		Email: p.Email,
 		Password: p.Password,
 	}
-	err = c.UserService.CreateUser(u)
+	err, newUser := c.UserService.CreateUser(u)
 	if err != nil {
 		response.Fail(c.Ctx, response.Error, "create failed", nil)
 	} else {
-		response.Success(c.Ctx, response.Successful, nil)
+		response.Success(c.Ctx, response.Successful, newUser)
 	}
 }
 

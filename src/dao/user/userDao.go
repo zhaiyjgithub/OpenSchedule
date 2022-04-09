@@ -18,14 +18,14 @@ func NewUserDao(engine *gorm.DB) *Dao {
 	return &Dao{mainEngine: engine}
 }
 
-func (d *Dao) CreateUser(user user.Users) error {
+func (d *Dao) CreateUser(user user.Users) (error, *user.Users) {
 	existUser := d.GetUserByEmail(user.Email)
 	if existUser.Email == user.Email {
 		errText := user.Email + " is exist."
-		return errors.New(errText)
+		return errors.New(errText), nil
 	}
 	db := d.mainEngine.Create(&user)
-	return db.Error
+	return db.Error, &user
 }
 
 func (d *Dao) GetUserByEmail(email string) user.Users {

@@ -17,6 +17,6 @@ type	Users	struct {
 	Phone	string	`gorm:"column:phone;type:varchar(20)" json:"phone"`
 	Address	string	`gorm:"column:address;type:text" json:"address"`
 	Password	string	`gorm:"column:password;type:varchar(32)" json:"password"`
-	CreatedAt	time.Time	`gorm:"column:created_at;type:datetime" json:"createdAt"`
-	UpdatedAt	time.Time	`gorm:"column:updated_at;type:datetime" json:"updatedAt"`
+	CreatedAt	time.Time	`gorm:"column:created_at;type:datetime" json:"-"`
+	UpdatedAt	time.Time	`gorm:"column:updated_at;type:datetime" json:"-"`
 }
