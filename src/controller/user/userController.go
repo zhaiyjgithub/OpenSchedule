@@ -19,6 +19,7 @@ type Controller struct {
 func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, router.CreateUser, "CreateUser")
 	b.Handle(http.MethodPost, router.GetUserByEmail, "GetUserByEmail")
+	b.Handle(http.MethodPost, router.Login, "Login")
 }
 
 func (c *Controller) CreateUser() {
@@ -67,5 +68,24 @@ func (c *Controller) GetUserByEmail()  {
 		response.Fail(c.Ctx, response.Error, response.NotFound, nil)
 	} else {
 		response.Success(c.Ctx, response.Successful, u)
+	}
+}
+
+func (c *Controller) Login()  {
+	type Param struct {
+		Email string `validate:"required,email" json:"email"`
+		Password string `validate:"required,len=32" json:"password"`
+	}
+	var p Param
+	err := utils.ValidateParam(c.Ctx, &p)
+	if err != nil {
+		return
+	}
+
+	u := c.UserService.GetUserByEmail(p.Email)
+	if u.Password == p.Password {
+		response.Success(c.Ctx, response.Successful, u)
+	}else {
+		response.Fail(c.Ctx, response.Error, "Login failed", nil)
 	}
 }

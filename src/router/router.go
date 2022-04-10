@@ -25,4 +25,5 @@ const (
 	User = AnyHealthService + "/User"
 	CreateUser = "/CreateUser"
 	GetUserByEmail = "/GetUserByEmail"
+	Login = "/Login"
 )
