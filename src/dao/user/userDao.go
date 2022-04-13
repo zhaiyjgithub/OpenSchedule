@@ -1,7 +1,3 @@
-/**
- * @author zhaiyuanji
- * @date 2022年04月08日 10:40 上午
- */
 package user
 
 import (
@@ -18,7 +14,7 @@ func NewUserDao(engine *gorm.DB) *Dao {
 	return &Dao{mainEngine: engine}
 }
 
-func (d *Dao) CreateUser(user user.Users) (error, *user.Users) {
+func (d *Dao) CreateUser(user user.User) (error, *user.User) {
 	existUser := d.GetUserByEmail(user.Email)
 	if existUser.Email == user.Email {
 		errText := user.Email + " is exist."
@@ -28,8 +24,8 @@ func (d *Dao) CreateUser(user user.Users) (error, *user.Users) {
 	return db.Error, &user
 }
 
-func (d *Dao) GetUserByEmail(email string) user.Users {
-	var user user.Users
+func (d *Dao) GetUserByEmail(email string) user.User {
+	var user user.User
 	d.mainEngine.Where("email = ?", email).First(&user)
 	return user
 }

@@ -21,19 +21,19 @@ type Service interface {
 	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
 	IsExist(npi int64) bool
 	SyncDoctorToES(doctor * doctor.Doctor) error
-	AddAppointment(appointment doctor.Appointments) error
+	AddAppointment(appointment doctor.Appointment) error
 	GetAppointmentByRange(
 		npi int64,
 		appointmentStatus constant.AppointmentStatus,
 		startDate time.Time,
 		endDate time.Time,
-	) []*doctor.Appointments
+	) []*doctor.Appointment
 	GetAppointmentsByRange(
 		npi []int64,
 		appointmentStatus constant.AppointmentStatus,
 		startDate time.Time,
 		endDate time.Time,
-	) []*doctor.Appointments
+	) []*doctor.Appointment
 	GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings
 }
 
@@ -120,7 +120,7 @@ func (s *service) SyncDoctorToES(doctor * doctor.Doctor) error  {
 	return s.dao.SyncDoctorToES(doctor)
 }
 
-func (s *service) AddAppointment(appointment doctor.Appointments) error {
+func (s *service) AddAppointment(appointment doctor.Appointment) error {
 	return s.dao.AddAppointment(appointment)
 }
 
@@ -129,7 +129,7 @@ func (s *service) GetAppointmentByRange(
 	appointmentStatus constant.AppointmentStatus,
 	startDate time.Time,
 	endDate time.Time,
-) []*doctor.Appointments  {
+) []*doctor.Appointment {
 	return s.dao.GetAppointmentByRange(npi, appointmentStatus, startDate, endDate)
 }
 
@@ -138,7 +138,7 @@ func (s *service) GetAppointmentsByRange(
 	appointmentStatus constant.AppointmentStatus,
 	startDate time.Time,
 	endDate time.Time,
-) []*doctor.Appointments  {
+) []*doctor.Appointment {
 	return s.dao.GetAppointmentsByRange(npi, appointmentStatus, startDate, endDate)
 }
 

@@ -38,7 +38,7 @@ func (c *Controller) CreateUser() {
 		return
 	}
 
-	u := user.Users{
+	u := user.User{
 		FirstName: p.FirstName,
 		LastName: p.LastName,
 		Gender: p.Gender,

@@ -196,7 +196,7 @@ func TestDao_GetDuplicateDoctorInfoFromES(t *testing.T) {
 }
 
 func TestDao_AddAppointment(t *testing.T) {
-	appt := doctor.Appointments{
+	appt := doctor.Appointment{
 		AppointmentDate: time.Date(2022, 2, 23, 3, 45, 0, 0, time.UTC),
 		Npi: testNpi,
 		AppointmentType: constant.InClinic,

@@ -11,8 +11,8 @@ import (
 )
 
 type Service interface {
-	CreateUser(user user.Users) (error, *user.Users)
-	GetUserByEmail(email string) user.Users
+	CreateUser(user user.User) (error, *user.User)
+	GetUserByEmail(email string) user.User
 }
 
 func NewService() Service {
@@ -23,11 +23,11 @@ type service struct {
 	dao *userDao.Dao
 }
 
-func (s *service) CreateUser(user user.Users) (error, *user.Users) {
+func (s *service) CreateUser(user user.User) (error, *user.User) {
 	return s.dao.CreateUser(user)
 }
 
-func (s *service) GetUserByEmail(email string) user.Users {
+func (s *service) GetUserByEmail(email string) user.User {
 	return s.dao.GetUserByEmail(email)
 }
 
