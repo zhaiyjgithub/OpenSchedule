@@ -1,4 +1,4 @@
-package doctor
+package schedule
 
 import (
 	"OpenSchedule/src/model/doctor"
