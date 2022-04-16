@@ -16,8 +16,8 @@ type ClosedDate struct {
 	PmEndTime string
 }
 
-func (d *Dao) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error {
-	db := d.engine.Create(closeDateSettings)
+func (d *Dao) AddClosedDate(closeDateSettings doctor.ClosedDateSettings) error {
+	db := d.engine.Create(&closeDateSettings)
 	return db.Error
 }
 
@@ -41,6 +41,14 @@ func (d *Dao) GetClosedDateByDateTime(npi int64, t time.Time) (*doctor.ClosedDat
 		return nil, db.Error
 	}
 	return st, nil
+}
+
+func (d *Dao) GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings {
+	var closedDateSettings []doctor.ClosedDateSettings
+	ft := from.Format(constant.YYYMMDD)
+	tt := to.Format(constant.YYYMMDD)
+	_ = d.engine.Raw("SELECT * FROM closed_date_settings WHERE npi IN (?) AND ( DATE_FORMAT(start_date, '%Y-%M-%D') BETWEEN DATE_FORMAT(?, '%Y-%M-%D') AND DATE_FORMAT(?, '%Y-%M-%D') OR DATE_FORMAT(end_date, '%Y-%M-%D') BETWEEN DATE_FORMAT(?, '%Y-%M-%D') AND DATE_FORMAT(?, '%Y-%M-%D'));", npi, ft, tt, ft, tt).Scan(&closedDateSettings)
+	return closedDateSettings
 }
 
 func (d *Dao) GetHourMinuteFromTimestamp(t time.Time, isAM bool) string {

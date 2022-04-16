@@ -12,15 +12,15 @@ import (
 )
 
 type Service interface {
-	SetScheduleSettings (settings *doctor.ScheduleSettings) error
-	GetScheduleSettings(npi int64) *doctor.ScheduleSettings
-	AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error
+	SetScheduleSettings (settings doctor.ScheduleSettings) error
+	GetScheduleSettings(npi int64) doctor.ScheduleSettings
+	AddClosedDate(closeDateSettings doctor.ClosedDateSettings) error
 	DeleteClosedDate(npi int64, id int) error
 	GetClosedDate(npi int64) []doctor.ClosedDateSettings
-	SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error
+	SyncCertainDoctorScheduleNextAvailableDateToES(settings doctor.ScheduleSettings) error
 	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
 	IsExist(npi int64) bool
-	SyncDoctorToES(doctor * doctor.Doctor) error
+	SyncDoctorToES(doctor *doctor.Doctor) error
 	AddAppointment(appointment doctor.Appointment) error
 	GetAppointmentByRange(
 		npi int64,
@@ -34,7 +34,8 @@ type Service interface {
 		startDate time.Time,
 		endDate time.Time,
 	) []*doctor.Appointment
-	GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings
+	GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSettings
+	GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings
 }
 
 func NewService() Service {
@@ -45,16 +46,16 @@ type service struct {
 	dao *schedule.Dao
 }
 
-func (s *service) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
+func (s *service) SetScheduleSettings(setting doctor.ScheduleSettings) error {
 	return s.dao.SetScheduleSettings(setting)
 }
 
-func (s *service) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
+func (s *service) GetScheduleSettings(npi int64) doctor.ScheduleSettings {
 	return s.dao.GetScheduleSettings(npi)
 }
 
-func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings *doctor.ScheduleSettings) error {
-	if settings == nil {
+func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings doctor.ScheduleSettings) error {
+	if settings.Npi == 0 {
 		return errors.New("param is nil")
 	}
 	currentTime := time.Now().UTC()
@@ -74,7 +75,7 @@ func (s *service) SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*docto
 	var reqs []*elastic.BulkUpdateRequest
 	for _, doc := range doctors {
 		settings := s.GetScheduleSettings(doc.Npi)
-		if settings == nil {
+		if settings.Npi == 0 {
 			fmt.Println("settings not found: ", doc.Npi)
 			continue
 		}
@@ -100,7 +101,7 @@ func (s *service) SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*docto
 	return s.dao.BulkUpdateToES(reqs)
 }
 
-func (s *service) AddClosedDate(closeDateSettings *doctor.ClosedDateSettings) error  {
+func (s *service) AddClosedDate(closeDateSettings doctor.ClosedDateSettings) error  {
 	return s.dao.AddClosedDate(closeDateSettings)
 }
 
@@ -142,6 +143,10 @@ func (s *service) GetAppointmentsByRange(
 	return s.dao.GetAppointmentsByRange(npi, appointmentStatus, startDate, endDate)
 }
 
-func (s *service) GetSettingsByNpiList(npiList []int64) []*doctor.ScheduleSettings  {
+func (s *service) GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSettings  {
 	return s.dao.GetSettingsByNpiList(npiList)
+}
+
+func (s *service)GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings  {
+	return s.dao.GetClosedDateByRange(npi, from, to)
 }

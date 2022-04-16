@@ -2,8 +2,8 @@ package schedule
 
 import "OpenSchedule/src/model/doctor"
 
-func (d *Dao) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
-	st := &doctor.ScheduleSettings{}
+func (d *Dao) SetScheduleSettings(setting doctor.ScheduleSettings) error {
+	var st doctor.ScheduleSettings
 	db := d.engine.Where("npi = ?", setting.Npi).First(st)
 	if db.Error != nil { // not found
 		db = d.engine.Create(setting)
@@ -16,13 +16,10 @@ func (d *Dao) SetScheduleSettings(setting *doctor.ScheduleSettings) error {
 	}
 }
 
-func (d *Dao) GetScheduleSettings(npi int64) *doctor.ScheduleSettings {
-	st := &doctor.ScheduleSettings{}
-	db := d.engine.Where("npi = ?", npi).First(st)
-	if db.Error != nil {
-		return nil
-	}
-	return st
+func (d *Dao) GetScheduleSettings(npi int64) doctor.ScheduleSettings {
+	var setting doctor.ScheduleSettings
+	_ = d.engine.Where("npi = ?", npi).First(&setting)
+	return setting
 }
 
 func (d *Dao) IsExist(npi int64) bool {

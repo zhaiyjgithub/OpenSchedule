@@ -28,6 +28,7 @@ var InvalidDateTime = DefaultTimeStamp.Format(time.RFC3339)
 
 const (
 	YYYY_MM_DD_HH_mm_SS = "2006-01-02 15:00:00"
+	YYYMMDD = "2006-01-02"
 )
 
 type AppointmentStatus int

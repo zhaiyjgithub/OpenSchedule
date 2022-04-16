@@ -28,9 +28,9 @@ func (c *ScheduleController) SetScheduleSettings()  {
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	err := c.ScheduleService.SetScheduleSettings(&p)
+	err := c.ScheduleService.SetScheduleSettings(p)
 	if err != nil {
-		err = c.ScheduleService.SyncCertainDoctorScheduleNextAvailableDateToES(&p)
+		err = c.ScheduleService.SyncCertainDoctorScheduleNextAvailableDateToES(p)
 	}
 	if err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(),nil)
@@ -56,7 +56,7 @@ func (c *ScheduleController) AddClosedDateSettings()  {
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	if err := c.ScheduleService.AddClosedDate(&p); err != nil {
+	if err := c.ScheduleService.AddClosedDate(p); err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	}else {
 		response.Success(c.Ctx, response.Successful, nil)
