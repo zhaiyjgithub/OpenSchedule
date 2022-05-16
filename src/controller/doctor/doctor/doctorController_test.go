@@ -40,9 +40,9 @@ func TestController_ConvertBookedAppointmentsToTimeSlots(t *testing.T) {
 }
 
 func TestConvertClosedDateToTimeSlotsByDate(t *testing.T) {
-	startDate := time.Date(2022, 4, 19, 0, 0, 0, 0, time.UTC)
-	endDate := time.Date(2022, 4, 19, 0, 0, 0, 0, time.UTC)
-	targetDate := time.Date(2022, 4, 19, 0, 0, 0, 0, time.UTC)
+	startDate := time.Date(2022, 4, 20, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(2022, 4, 20, 0, 0, 0, 0, time.UTC)
+	targetDate := time.Date(2022, 4, 20, 0, 0, 0, 0, time.UTC)
 	npi := []int64{testNpi}
 
 	closedDateSettingsMap := c.MappingClosedDateByDateRange(npi, startDate, endDate)

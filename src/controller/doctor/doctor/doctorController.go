@@ -62,7 +62,7 @@ func (c *Controller) SearchDoctor()  {
 		Keyword string
 		AppointmentType constant.AppointmentType
 		StartDate string
-		DateRange int
+		DateRange int `validate:"required,gt=1"`
 		Gender constant.Gender
 		Specialty string
 		City string
