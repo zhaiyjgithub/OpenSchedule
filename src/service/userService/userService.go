@@ -13,6 +13,9 @@ import (
 type Service interface {
 	CreateUser(user user.User) (error, *user.User)
 	GetUserByEmail(email string) user.User
+	CreateSubUser(subUser user.SubUsers) error
+	GetSubUsers(userId int) []user.SubUsers
+	UpdateSubUserPhone(userID int, phone string) error
 }
 
 func NewService() Service {
@@ -31,3 +34,14 @@ func (s *service) GetUserByEmail(email string) user.User {
 	return s.dao.GetUserByEmail(email)
 }
 
+func (s *service) CreateSubUser(subUser user.SubUsers) error {
+	return s.dao.CreateSubUser(subUser)
+}
+
+func (s *service) GetSubUsers(userId int) []user.SubUsers {
+	return s.dao.GetSubUsers(userId)
+}
+
+func (s *service) UpdateSubUserPhone(userID int, phone string) error {
+	return s.dao.UpdateSubUserPhone(userID, phone)
+}

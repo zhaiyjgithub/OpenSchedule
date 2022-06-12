@@ -8,7 +8,7 @@ import "time"
 
 // User [...]
 type	User struct {
-	ID	int	`gorm:"primaryKey;column:id;type:int(11);not null" json:"-"`
+	ID	int	`gorm:"primaryKey;column:id;type:int(11);not null" json:"id"`
 	FirstName	string	`gorm:"column:first_name;type:varchar(50)" json:"firstName"`
 	LastName	string	`gorm:"column:last_name;type:varchar(50)" json:"lastName"`
 	Gender	string	`gorm:"column:gender;type:char(1)" json:"gender"`

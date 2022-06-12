@@ -26,4 +26,7 @@ const (
 	CreateUser = "/CreateUser"
 	GetUserByEmail = "/GetUserByEmail"
 	Login = "/Login"
+	CreateSubUser = "/CreateSubUser"
+	GetSubUsers = "/GetSubUsers"
+	UpdateSubUserPhone = "/UpdateSubUserPhone"
 )

@@ -20,12 +20,15 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, router.CreateUser, "CreateUser")
 	b.Handle(http.MethodPost, router.GetUserByEmail, "GetUserByEmail")
 	b.Handle(http.MethodPost, router.Login, "Login")
+	b.Handle(http.MethodPost, router.CreateSubUser, "CreateSubUser")
+	b.Handle(http.MethodPost, router.GetSubUsers, "GetSubUsers")
+	b.Handle(http.MethodPost, router.UpdateSubUserPhone, "UpdateSubUserPhone")
 }
 
 func (c *Controller) CreateUser() {
 	type Param struct {
-		FirstName	string	`validate:"required" json:"firstName"`
-		LastName	string	`validate:"required" json:"lastName"`
+		FirstName	string	` json:"firstName"`
+		LastName	string	` json:"lastName"`
 		Gender	string	`validate:"required,oneof=F M" json:"gender"`
 		Birthday string `validate:"required,len=10" json:"birthday"`
 		Email	string	`validate:"email,required" json:"email"`
@@ -71,7 +74,7 @@ func (c *Controller) GetUserByEmail()  {
 	}
 }
 
-func (c *Controller) Login()  {
+func (c *Controller) Login() {
 	type Param struct {
 		Email string `validate:"required,email" json:"email"`
 		Password string `validate:"required,len=32" json:"password"`
@@ -87,5 +90,71 @@ func (c *Controller) Login()  {
 		response.Success(c.Ctx, response.Successful, u)
 	}else {
 		response.Fail(c.Ctx, response.Error, "Login failed", nil)
+	}
+}
+
+func (c *Controller) CreateSubUser() {
+	type Param struct {
+		FirstName string `json:"firstName,required"`
+		LastName string `json:"lastName,required"`
+		Email string `json:"email,omitempty"`
+		Phone string `json:"phone,required"`
+		Birthday string `json:"birthday,required" validate:"datetime=2006-01-02"`
+		Gender string `json:"gender,required"`
+		UserID int `json:"userID,required"`
+		IsLegal bool `json:"is_legal,required"`
+	}
+	var p Param
+	err := utils.ValidateParam(c.Ctx, &p)
+	if err != nil {
+		return
+	}
+
+	u := user.SubUsers{
+		FirstName: p.FirstName,
+		LastName: p.LastName,
+		Email: p.Email,
+		Phone: p.Phone,
+		Birthday: p.Birthday,
+		UserID: p.UserID,
+		Gender: p.Gender,
+		IsLegal: p.IsLegal,
+	}
+	err = c.UserService.CreateSubUser(u)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
+	}else {
+		response.Success(c.Ctx, response.Successful, nil)
+	}
+}
+
+func (c *Controller) GetSubUsers() {
+	type Param struct {
+		UserID int `json:"userID,required"`
+	}
+	var p Param
+	err := utils.ValidateParam(c.Ctx, &p)
+	if err != nil {
+		return
+	}
+	u := c.UserService.GetSubUsers(p.UserID)
+	response.Success(c.Ctx, response.Successful, u)
+}
+
+func (c *Controller) UpdateSubUserPhone() {
+	type Param struct {
+		UserID int `json:"user_id,required"`
+		Phone string `json:"phone,required"`
+	}
+	var p Param
+	err := utils.ValidateParam(c.Ctx , &p)
+	if err != nil {
+		return
+	}
+	err = c.UserService.UpdateSubUserPhone(p.UserID, p.Phone)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
+	} else {
+		response.Success(c.Ctx, response.Successful, nil)
 	}
 }
