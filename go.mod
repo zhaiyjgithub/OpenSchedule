@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/Joker/hpp v1.0.0 // indirect
-	github.com/go-co-op/gocron v1.9.0 // indirect
+	github.com/go-co-op/gocron v1.9.0
 	github.com/go-playground/validator/v10 v10.8.0
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210705170737-afb15b860124
@@ -15,6 +15,7 @@ require (
 	github.com/onsi/gomega v1.11.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	gorm.io/driver/mysql v1.1.1
 	gorm.io/gorm v1.21.11
 )
