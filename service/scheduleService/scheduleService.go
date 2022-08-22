@@ -177,7 +177,7 @@ func (s *service) GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, start
 	return bTimeSlots
 }
 
-func (s * service) GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings {
+func (s *service) GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings {
 	closeDateSettings := s.GetClosedDateByRange(npiList, startDate, endDate)
 	settingMap := make(map[int64][]doctor.ClosedDateSettings)
 	for _, setting := range closeDateSettings {

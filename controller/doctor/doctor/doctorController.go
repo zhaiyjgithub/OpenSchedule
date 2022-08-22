@@ -61,7 +61,7 @@ func (c *Controller) SearchDoctor() {
 		Keyword         string
 		AppointmentType constant.AppointmentType
 		StartDate       string
-		EndDate string
+		EndDate         string
 		DateRange       int `validate:"required,gt=1"`
 		Gender          constant.Gender
 		Specialty       string
@@ -150,7 +150,7 @@ func (c *Controller) GetTimeSlots() {
 	type Param struct {
 		Npi       int64  `json:"npi"`
 		StartDate string `json:"startDate"`
-		EndDate   string    `json:"endDate"`
+		EndDate   string `json:"endDate"`
 	}
 	var p Param
 	err := utils.ValidateParam(c.Ctx, &p)
