@@ -42,6 +42,8 @@ type Service interface {
 	GetScheduleSettingByNpiList(npiList []int64) map[int64]doctor.ScheduleSettings
 	GetDoctorTimeSlotsByDate(setting doctor.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctor.TimeSlot,
 		closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay
+	GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error)
+	CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) (bool, error)
 }
 
 func NewService() Service {
@@ -128,7 +130,15 @@ func (s *service) SyncDoctorToES(doctor *doctor.Doctor) error {
 }
 
 func (s *service) AddAppointment(appointment doctor.Appointment) error {
-	return s.dao.AddAppointment(appointment)
+	ok, err := s.CheckTimeSlotIsAvailable(appointment.Npi, appointment.AppointmentDate)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return s.dao.AddAppointment(appointment)
+	} else {
+		return errors.New("this appointment is unavailable")
+	}
 }
 
 func (s *service) GetAppointmentByRange(
@@ -304,7 +314,7 @@ func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targ
 			continue
 		}
 		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
-		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
+		numberOfBooked := getBookedNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
 		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
 			availableNumber = 0
@@ -319,7 +329,7 @@ func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targ
 			continue
 		}
 		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
-		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
+		numberOfBooked := getBookedNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
 		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
 			availableNumber = 0
@@ -332,7 +342,7 @@ func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targ
 	return timeSlots
 }
 
-func getBookNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctor.TimeSlot) int {
+func getBookedNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctor.TimeSlot) int {
 	bookedNumber := 0
 	for _, ts := range bookedTimeSlots {
 		if ts.Offset <= currentOffset && ts.Offset > currentOffset-duration {
@@ -340,4 +350,46 @@ func getBookNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []
 		}
 	}
 	return bookedNumber
+}
+
+func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error)  {
+	l := []int64{npi}
+	var timeSlots []doctor.TimeSlot
+	setting := s.GetScheduleSettings(npi)
+	if setting.Npi == 0 {
+		return timeSlots, errors.New("npi not found")
+	}
+	endDate := targetDate
+	allBookedTimeSlotsMap := s.GetBookedAppointmentsTimeSlotsByNpiList(l, targetDate, endDate)
+	closedDateMap := s.GetClosedDateByNpiList(l, targetDate, endDate)
+	dateKey := fmt.Sprintf("%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
+	bookedTimeSlotsForNpi, ok := allBookedTimeSlotsMap[npi]
+	var bookedTimeSlotInTargetDate []doctor.TimeSlot
+	if !ok {
+		bookedTimeSlotInTargetDate = make([]doctor.TimeSlot, 0)
+	} else {
+		bookedTimeSlotInTargetDate = bookedTimeSlotsForNpi[dateKey]
+	}
+	closeDateList, ok := closedDateMap[npi]
+	if !ok {
+		closeDateList = []doctor.ClosedDateSettings{}
+	}
+	allTimeSlots := s.GetDoctorTimeSlotsPerDay(setting, targetDate, bookedTimeSlotInTargetDate)
+	targetClosetDate := s.getClosedDateByDate(closeDateList, targetDate)
+	timeSlots = s.filterTimeSlotsByClosedDate(targetDate, allTimeSlots, targetClosetDate)
+	return timeSlots, nil
+}
+
+func (s *service) CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) (bool, error) {
+	allTimeSlots, err := s.GetOneDayTimeSlotByNpi(npi, targetDateTime)
+	if err != nil {
+		return false, err
+	}
+	offset := targetDateTime.Hour() * 60 + targetDateTime.Minute()
+	for idx, _slot := range allTimeSlots {
+		if _slot.AvailableSlotsNumber > 0 && _slot.Offset >= offset && idx < (len(allTimeSlots) - 1) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
