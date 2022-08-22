@@ -20,6 +20,7 @@ const (
 	AddClosedDateSettings    = "/AddClosedDateSettings"
 	DeleteClosedDateSettings = "/DeleteClosedDateSettings"
 	GetClosedDateSettings    = "/GetClosedDateSettings"
+	AddAppointment           = "/AddAppointment"
 )
 
 const (

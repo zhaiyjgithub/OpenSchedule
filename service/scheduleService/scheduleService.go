@@ -352,7 +352,7 @@ func getBookedNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots 
 	return bookedNumber
 }
 
-func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error)  {
+func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error) {
 	l := []int64{npi}
 	var timeSlots []doctor.TimeSlot
 	setting := s.GetScheduleSettings(npi)
@@ -385,9 +385,9 @@ func (s *service) CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) 
 	if err != nil {
 		return false, err
 	}
-	offset := targetDateTime.Hour() * 60 + targetDateTime.Minute()
+	offset := targetDateTime.Hour()*60 + targetDateTime.Minute()
 	for idx, _slot := range allTimeSlots {
-		if _slot.AvailableSlotsNumber > 0 && _slot.Offset >= offset && idx < (len(allTimeSlots) - 1) {
+		if _slot.AvailableSlotsNumber > 0 && _slot.Offset >= offset && idx < (len(allTimeSlots)-1) {
 			return true, nil
 		}
 	}

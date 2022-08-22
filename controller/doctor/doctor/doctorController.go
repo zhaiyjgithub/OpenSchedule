@@ -137,15 +137,6 @@ func (c *Controller) SearchDoctor() {
 	})
 }
 
-func (c *Controller) getScheduleSettingByNpi(npi []int64) map[int64]doctor.ScheduleSettings {
-	list := c.ScheduleService.GetSettingsByNpiList(npi)
-	settingMap := make(map[int64]doctor.ScheduleSettings)
-	for _, setting := range list {
-		settingMap[setting.Npi] = setting
-	}
-	return settingMap
-}
-
 func (c *Controller) GetTimeSlots() {
 	type Param struct {
 		Npi       int64  `json:"npi"`

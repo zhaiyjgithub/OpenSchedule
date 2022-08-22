@@ -48,7 +48,7 @@ func configureDoctorMVC(app *mvc.Application) {
 func configureScheduleSettingsMVC(app *mvc.Application) {
 	scheduleService := scheduleService.NewService()
 	app.Register(scheduleService)
-	app.Handle(new(schedule.ScheduleController))
+	app.Handle(new(schedule.Controller))
 }
 
 func configureUerMVC(app *mvc.Application) {
