@@ -62,7 +62,7 @@ func (c *Controller) SearchDoctor() {
 		Keyword         string
 		AppointmentType constant.AppointmentType
 		StartDate       string
-		DateRange       int `validate:"required,gt=1"`
+		EndDate         string
 		Gender          constant.Gender
 		Specialty       string
 		City            string
@@ -97,20 +97,22 @@ func (c *Controller) SearchDoctor() {
 	}
 	data := make([]DoctorDetailInfo, 0)
 	startDate, _ := time.Parse(time.RFC3339, p.StartDate)
-	endDate := startDate.AddDate(0, 0, p.DateRange)
-	startDateZero := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
+	endDate, _ := time.Parse(time.RFC3339, p.EndDate)
+
+	startDateUTC := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
+	endDateUTC := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, time.UTC)
+
 	npiList := make([]int64, 0)
 	for _, docInfo := range doctorInfoList {
 		npiList = append(npiList, docInfo.Npi)
 	}
-	settingMap := c.getScheduleSettingByNpi(npiList)
-	closedDateMap := c.MappingClosedDateByDateRange(npiList, startDate, endDate)
-	// todo: Generate time slots by appointment type and closed dates in from start date to the end date.
-	allBookedTimeSlots := c.ConvertBookedAppointmentsToTimeSlots(npiList, startDate, endDate)
+	settingMap := c.ScheduleService.GetScheduleSettingByNpiList(npiList)
+	closedDateMap := c.ScheduleService.GetClosedDateByNpiList(npiList, startDateUTC, endDateUTC)
+	bookedTimeSlots := c.ScheduleService.GetBookedAppointmentsTimeSlotsByNpiList(npiList, startDateUTC, endDateUTC)
 	for _, docInfo := range doctorInfoList {
 		setting, ok := settingMap[docInfo.Npi]
 		if ok {
-			bookedTimeSlotsForNpi, ok := allBookedTimeSlots[setting.Npi]
+			bookedTimeSlotsForNpi, ok := bookedTimeSlots[setting.Npi]
 			if !ok {
 				bookedTimeSlotsForNpi = make(map[string][]doctor.TimeSlot)
 			}
@@ -118,7 +120,7 @@ func (c *Controller) SearchDoctor() {
 			if !ok {
 				closeDateForNpi = []doctor.ClosedDateSettings{}
 			}
-			timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, p.DateRange, bookedTimeSlotsForNpi, closeDateForNpi)
+			timeSlots := c.ScheduleService.GetDoctorTimeSlotsByDate(setting, startDateUTC, endDateUTC, bookedTimeSlotsForNpi, closeDateForNpi)
 			data = append(data, DoctorDetailInfo{
 				DoctorInfo: docInfo,
 				TimeSlots:  timeSlots,
@@ -135,20 +137,11 @@ func (c *Controller) SearchDoctor() {
 	})
 }
 
-func (c *Controller) getScheduleSettingByNpi(npi []int64) map[int64]doctor.ScheduleSettings {
-	list := c.ScheduleService.GetSettingsByNpiList(npi)
-	settingMap := make(map[int64]doctor.ScheduleSettings)
-	for _, setting := range list {
-		settingMap[setting.Npi] = setting
-	}
-	return settingMap
-}
-
 func (c *Controller) GetTimeSlots() {
 	type Param struct {
 		Npi       int64  `json:"npi"`
 		StartDate string `json:"startDate"`
-		Range     int    `json:"range"`
+		EndDate   string `json:"endDate"`
 	}
 	var p Param
 	err := utils.ValidateParam(c.Ctx, &p)
@@ -156,20 +149,22 @@ func (c *Controller) GetTimeSlots() {
 		return
 	}
 	startDate, err := time.Parse(time.RFC3339, p.StartDate)
+	endDate, err := time.Parse(time.RFC3339, p.EndDate)
 	if err != nil {
 		response.Fail(c.Ctx, response.Error, "param error: start date", nil)
 		return
 	}
-	startDateZero := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
+	startDateUTC := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
+	endDateUTC := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, time.UTC)
+
 	setting := c.ScheduleService.GetScheduleSettings(p.Npi)
 	if setting.Npi == 0 {
 		response.Fail(c.Ctx, response.Error, response.NotFound, nil)
 		return
 	}
-	endDate := startDate.AddDate(0, 0, p.Range-1)
-	npi := []int64{setting.Npi}
-	allBookedTimeSlotsMap := c.ConvertBookedAppointmentsToTimeSlots(npi, startDate, endDate)
-	closedDateMap := c.MappingClosedDateByDateRange(npi, startDate, endDate)
+	npiList := []int64{setting.Npi}
+	allBookedTimeSlotsMap := c.ScheduleService.GetBookedAppointmentsTimeSlotsByNpiList(npiList, startDateUTC, endDateUTC)
+	closedDateMap := c.ScheduleService.GetClosedDateByNpiList(npiList, startDateUTC, endDateUTC)
 	bookedTimeSlotsForNpi, ok := allBookedTimeSlotsMap[setting.Npi]
 	if !ok {
 		bookedTimeSlotsForNpi = make(map[string][]doctor.TimeSlot)
@@ -178,7 +173,7 @@ func (c *Controller) GetTimeSlots() {
 	if !ok {
 		closeDateForNpi = []doctor.ClosedDateSettings{}
 	}
-	timeSlots := c.GetDoctorTimeSlotsInRange(setting, startDateZero, p.Range, bookedTimeSlotsForNpi, closeDateForNpi)
+	timeSlots := c.ScheduleService.GetDoctorTimeSlotsByDate(setting, startDateUTC, endDateUTC, bookedTimeSlotsForNpi, closeDateForNpi)
 	response.Success(c.Ctx, response.Successful, timeSlots)
 }
 

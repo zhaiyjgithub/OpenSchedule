@@ -14,7 +14,7 @@ type Appointment struct {
 	AppointmentDate        time.Time `gorm:"column:appointment_date;type:datetime" json:"appointmentDate"`
 	AppointmentStatus      int       `gorm:"column:appointment_status;type:int(11)" json:"appointmentStatus"`
 	Memo                   string    `gorm:"column:memo;type:text" json:"memo"`
-	TimeSlot               int       `gorm:"column:time_slot;type:int(11)" json:"timeSlot"`
+	Offset                 int       `gorm:"column:offset;type:int(11)" json:"offset"`
 	PatientID              int       `gorm:"column:patient_id;type:int(12)" json:"patientId"`
 	LegalGuardianPatientID int       `gorm:"column:legal_guardian_patient_id;type:int(12)" json:"legalGuardianPatientId"`
 	FirstName              string    `gorm:"column:first_name;type:varchar(50)" json:"firstName"`

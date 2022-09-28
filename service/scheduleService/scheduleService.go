@@ -5,6 +5,7 @@ import (
 	"OpenSchedule/dao/schedule"
 	"OpenSchedule/database"
 	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/viewModel"
 	"errors"
 	"fmt"
 	"github.com/olivere/elastic/v7"
@@ -41,6 +42,13 @@ type Service interface {
 	) []*doctor.Appointment
 	GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSettings
 	GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings
+	GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctor.TimeSlot
+	GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings
+	GetScheduleSettingByNpiList(npiList []int64) map[int64]doctor.ScheduleSettings
+	GetDoctorTimeSlotsByDate(setting doctor.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctor.TimeSlot,
+		closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay
+	GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error)
+	CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) (bool, error)
 }
 
 func NewService() Service {
@@ -127,7 +135,15 @@ func (s *service) SyncDoctorToES(doctor *doctor.Doctor) error {
 }
 
 func (s *service) AddAppointment(appointment doctor.Appointment) error {
-	return s.dao.AddAppointment(appointment)
+	ok, err := s.CheckTimeSlotIsAvailable(appointment.Npi, appointment.AppointmentDate)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return s.dao.AddAppointment(appointment)
+	} else {
+		return errors.New("this appointment is unavailable")
+	}
 }
 
 func (s *service) GetAppointmentByRange(
@@ -163,4 +179,231 @@ func (s *service) GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSetting
 
 func (s *service) GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings {
 	return s.dao.GetClosedDateByRange(npi, from, to)
+}
+
+// todo: Refactor appoint type
+
+func (s *service) GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctor.TimeSlot {
+	appointments := s.GetAppointmentsByRange(npiList, constant.Requested, startDate, endTime)
+	bTimeSlots := make(map[int64]map[string][]doctor.TimeSlot)
+	for _, appt := range appointments {
+		bookedTimeSlotsPerNpi, ok := bTimeSlots[appt.Npi]
+		offset := appt.AppointmentDate.Hour()*60 + appt.AppointmentDate.Minute()
+		dateKey := fmt.Sprintf("%d-%d-%d", appt.AppointmentDate.Year(), appt.AppointmentDate.Month(), appt.AppointmentDate.Day())
+		if !ok {
+			bookedTimeSlotsPerNpi = make(map[string][]doctor.TimeSlot)
+			bookedTimeSlotsPerNpi[dateKey] = []doctor.TimeSlot{{Offset: offset, AvailableSlotsNumber: 1}}
+		} else {
+			bookedTimeSlotsPerNpi[dateKey] = append(bookedTimeSlotsPerNpi[dateKey], doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
+		}
+		bTimeSlots[appt.Npi] = bookedTimeSlotsPerNpi
+	}
+	return bTimeSlots
+}
+
+func (s *service) GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings {
+	closeDateSettings := s.GetClosedDateByRange(npiList, startDate, endDate)
+	settingMap := make(map[int64][]doctor.ClosedDateSettings)
+	for _, setting := range closeDateSettings {
+		settingMap[setting.Npi] = append(settingMap[setting.Npi], setting)
+	}
+	return settingMap
+}
+
+func (s *service) GetScheduleSettingByNpiList(npiList []int64) map[int64]doctor.ScheduleSettings {
+	list := s.GetSettingsByNpiList(npiList)
+	settingMap := make(map[int64]doctor.ScheduleSettings)
+	for _, setting := range list {
+		settingMap[setting.Npi] = setting
+	}
+	return settingMap
+}
+
+func (s *service) GetDoctorTimeSlotsByDate(setting doctor.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctor.TimeSlot,
+	closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay {
+	timeSlots := make([]viewModel.TimeSlotPerDay, 0)
+	dateRange := int(endDate.Sub(startDate).Hours() / 24)
+	for i := 0; i < dateRange; i++ {
+		targetDate := startDate.AddDate(0, 0, i)
+		dateKey := fmt.Sprintf("%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
+		bookedTimeSlots, ok := bookedTimeSlots[dateKey]
+		timeSlotsPerDay := make([]doctor.TimeSlot, 0)
+		if ok {
+			timeSlotsPerDay = s.GetDoctorTimeSlotsPerDay(setting, targetDate, bookedTimeSlots)
+		} else {
+			timeSlotsPerDay = s.GetDoctorTimeSlotsPerDay(setting, targetDate, make([]doctor.TimeSlot, 0))
+		}
+		targetClosetDate := s.getClosedDateByDate(closeDateSetting, targetDate)
+		filterTimeSlotsPerDay := s.filterTimeSlotsByClosedDate(targetDate, timeSlotsPerDay, targetClosetDate)
+		timeSlots = append(timeSlots, viewModel.TimeSlotPerDay{Date: targetDate, TimeSlots: filterTimeSlotsPerDay})
+	}
+	return timeSlots
+}
+
+func (s *service) getClosedDateByDate(closedDateList []doctor.ClosedDateSettings, targetDate time.Time) doctor.ClosedDateSettings {
+	var targetClosedDate doctor.ClosedDateSettings
+	for i := 0; i < len(closedDateList); i++ {
+		closedDate := closedDateList[i]
+		if closedDate.StartDate.Year() == targetDate.Year() &&
+			closedDate.StartDate.Month() == targetDate.Month() &&
+			closedDate.StartDate.Day() == targetDate.Day() {
+			targetClosedDate = closedDate
+			break
+		}
+	}
+	return targetClosedDate
+}
+
+func (s *service) filterTimeSlotsByClosedDate(targetDate time.Time, timeSlots []doctor.TimeSlot, closedDate doctor.ClosedDateSettings) []doctor.TimeSlot {
+	if closedDate.AmStartDateTime.IsZero() && closedDate.PmStartDateTime.IsZero() {
+		return timeSlots
+	}
+	var filterList []doctor.TimeSlot
+	targetDateZero := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 0, 0, 0, 0, time.UTC)
+	for _, timeSlot := range timeSlots {
+		timeSlotDateTime := targetDateZero.Add(time.Minute * time.Duration(timeSlot.Offset))
+		if (timeSlotDateTime.Equal(closedDate.AmStartDateTime) || timeSlotDateTime.After(closedDate.AmStartDateTime) &&
+			(timeSlotDateTime.Equal(closedDate.AmEndDateTime) || timeSlotDateTime.Before(closedDate.AmEndDateTime))) ||
+			((timeSlotDateTime.Equal(closedDate.PmStartDateTime) || timeSlotDateTime.After(closedDate.PmStartDateTime)) &&
+				(timeSlotDateTime.Equal(closedDate.PmEndDateTime) || timeSlotDateTime.Before(closedDate.PmEndDateTime))) {
+			continue
+		} else {
+			filterList = append(filterList, timeSlot)
+		}
+	}
+	return filterList
+}
+
+func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot {
+	weekDay := targetDate.Weekday()
+	amStartTimeOffset := 0
+	amEndTimeOffset := 0
+	pmStartTimeOffset := 0
+	pmEndTimeOffset := 0
+	if weekDay == time.Sunday {
+		amStartTimeOffset = setting.SundayAmStartTimeOffset
+		amEndTimeOffset = setting.SundayAmEndTimeOffset
+		pmStartTimeOffset = setting.SundayPmStartTimeOffset
+		pmEndTimeOffset = setting.SundayPmEndTimeOffset
+	} else if weekDay == time.Monday {
+		amStartTimeOffset = setting.MondayAmStartTimeOffset
+		amEndTimeOffset = setting.MondayAmEndTimeOffset
+		pmStartTimeOffset = setting.MondayPmStartTimeOffset
+		pmEndTimeOffset = setting.MondayPmEndTimeOffset
+	} else if weekDay == time.Tuesday {
+		amStartTimeOffset = setting.TuesdayAmStartTimeOffset
+		amEndTimeOffset = setting.TuesdayAmEndTimeOffset
+		pmStartTimeOffset = setting.TuesdayPmStartTimeOffset
+		pmEndTimeOffset = setting.TuesdayPmEndTimeOffset
+	} else if weekDay == time.Wednesday {
+		amStartTimeOffset = setting.WednesdayAmStartTimeOffset
+		amEndTimeOffset = setting.WednesdayAmEndTimeOffset
+		pmStartTimeOffset = setting.WednesdayPmStartTimeOffset
+		pmEndTimeOffset = setting.WednesdayPmEndTimeOffset
+	} else if weekDay == time.Thursday {
+		amStartTimeOffset = setting.ThursdayAmStartTimeOffset
+		amEndTimeOffset = setting.ThursdayAmEndTimeOffset
+		pmStartTimeOffset = setting.ThursdayPmStartTimeOffset
+		pmEndTimeOffset = setting.ThursdayPmEndTimeOffset
+	} else if weekDay == time.Friday {
+		amStartTimeOffset = setting.FridayAmStartTimeOffset
+		amEndTimeOffset = setting.FridayAmEndTimeOffset
+		pmStartTimeOffset = setting.FridayPmStartTimeOffset
+		pmEndTimeOffset = setting.FridayPmEndTimeOffset
+	} else if weekDay == time.Saturday {
+		amStartTimeOffset = setting.SaturdayAmStartTimeOffset
+		amEndTimeOffset = setting.SaturdayAmEndTimeOffset
+		pmStartTimeOffset = setting.SaturdayPmStartTimeOffset
+		pmEndTimeOffset = setting.SaturdayPmEndTimeOffset
+	}
+
+	currentOffSet := 0
+	if time.Now().UTC().Day() == targetDate.Day() {
+		currentOffSet = targetDate.Hour()*60 + targetDate.Minute()
+	}
+
+	timeSlots := make([]doctor.TimeSlot, 0)
+	for i := amStartTimeOffset; i <= amEndTimeOffset+amStartTimeOffset; i += setting.DurationPerSlot {
+		if i < currentOffSet {
+			continue
+		}
+		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
+		numberOfBooked := getBookedNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
+		availableNumber := setting.NumberPerSlot
+		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
+			availableNumber = 0
+		} else {
+			availableNumber = timeSlot.AvailableSlotsNumber - numberOfBooked
+		}
+		timeSlot.AvailableSlotsNumber = availableNumber
+		timeSlots = append(timeSlots, timeSlot)
+	}
+	for i := pmStartTimeOffset + amStartTimeOffset; i <= pmEndTimeOffset+pmStartTimeOffset; i += setting.DurationPerSlot {
+		if i < currentOffSet {
+			continue
+		}
+		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
+		numberOfBooked := getBookedNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
+		availableNumber := setting.NumberPerSlot
+		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
+			availableNumber = 0
+		} else {
+			availableNumber = timeSlot.AvailableSlotsNumber - numberOfBooked
+		}
+		timeSlot.AvailableSlotsNumber = availableNumber
+		timeSlots = append(timeSlots, timeSlot)
+	}
+	return timeSlots
+}
+
+func getBookedNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctor.TimeSlot) int {
+	bookedNumber := 0
+	for _, ts := range bookedTimeSlots {
+		if ts.Offset <= currentOffset && ts.Offset > currentOffset-duration {
+			bookedNumber = bookedNumber + 1
+		}
+	}
+	return bookedNumber
+}
+
+func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error) {
+	l := []int64{npi}
+	var timeSlots []doctor.TimeSlot
+	setting := s.GetScheduleSettings(npi)
+	if setting.Npi == 0 {
+		return timeSlots, errors.New("npi not found")
+	}
+	endDate := targetDate
+	allBookedTimeSlotsMap := s.GetBookedAppointmentsTimeSlotsByNpiList(l, targetDate, endDate)
+	closedDateMap := s.GetClosedDateByNpiList(l, targetDate, endDate)
+	dateKey := fmt.Sprintf("%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
+	bookedTimeSlotsForNpi, ok := allBookedTimeSlotsMap[npi]
+	var bookedTimeSlotInTargetDate []doctor.TimeSlot
+	if !ok {
+		bookedTimeSlotInTargetDate = make([]doctor.TimeSlot, 0)
+	} else {
+		bookedTimeSlotInTargetDate = bookedTimeSlotsForNpi[dateKey]
+	}
+	closeDateList, ok := closedDateMap[npi]
+	if !ok {
+		closeDateList = []doctor.ClosedDateSettings{}
+	}
+	allTimeSlots := s.GetDoctorTimeSlotsPerDay(setting, targetDate, bookedTimeSlotInTargetDate)
+	targetClosetDate := s.getClosedDateByDate(closeDateList, targetDate)
+	timeSlots = s.filterTimeSlotsByClosedDate(targetDate, allTimeSlots, targetClosetDate)
+	return timeSlots, nil
+}
+
+func (s *service) CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) (bool, error) {
+	allTimeSlots, err := s.GetOneDayTimeSlotByNpi(npi, targetDateTime)
+	if err != nil {
+		return false, err
+	}
+	offset := targetDateTime.Hour()*60 + targetDateTime.Minute()
+	for idx, _slot := range allTimeSlots {
+		if _slot.AvailableSlotsNumber > 0 && _slot.Offset >= offset && idx < (len(allTimeSlots)-1) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
