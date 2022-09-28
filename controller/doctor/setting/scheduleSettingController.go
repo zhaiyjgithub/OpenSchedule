@@ -10,12 +10,12 @@ import (
 	"github.com/kataras/iris/v12/mvc"
 )
 
-type ScheduleController struct {
+type Controller struct {
 	Ctx             iris.Context
 	ScheduleService scheduleService.Service
 }
 
-func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation) {
+func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(iris.MethodPost, router.SetScheduleSettings, "SetScheduleSettings")
 	b.Handle(iris.MethodPost, router.GetScheduleSettings, "GetScheduleSettings")
 	b.Handle(iris.MethodPost, router.AddClosedDateSettings, "AddClosedDateSettings")
@@ -23,7 +23,7 @@ func (c *ScheduleController) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(iris.MethodPost, router.GetClosedDateSettings, "GetClosedDateSettings")
 }
 
-func (c *ScheduleController) SetScheduleSettings() {
+func (c *Controller) SetScheduleSettings() {
 	var p doctor.ScheduleSettings
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
@@ -39,7 +39,7 @@ func (c *ScheduleController) SetScheduleSettings() {
 	}
 }
 
-func (c *ScheduleController) GetScheduleSettings() {
+func (c *Controller) GetScheduleSettings() {
 	type Param struct {
 		Npi int64 `json:"npi" validate:"gt=0"`
 	}
@@ -51,7 +51,7 @@ func (c *ScheduleController) GetScheduleSettings() {
 	response.Success(c.Ctx, response.Successful, settings)
 }
 
-func (c *ScheduleController) AddClosedDateSettings() {
+func (c *Controller) AddClosedDateSettings() {
 	var p doctor.ClosedDateSettings
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
@@ -63,7 +63,7 @@ func (c *ScheduleController) AddClosedDateSettings() {
 	}
 }
 
-func (c *ScheduleController) DeleteClosedDateSettings() {
+func (c *Controller) DeleteClosedDateSettings() {
 	type Param struct {
 		Npi int64 `json:"npi" validate:"gt=0"`
 		Sid int   `json:"sid"`
@@ -79,7 +79,7 @@ func (c *ScheduleController) DeleteClosedDateSettings() {
 	}
 }
 
-func (c *ScheduleController) GetClosedDateSettings() {
+func (c *Controller) GetClosedDateSettings() {
 	type Param struct {
 		Npi int64 `json:"npi" validate:"gt=0"`
 	}

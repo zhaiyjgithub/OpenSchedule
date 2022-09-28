@@ -2,10 +2,10 @@ package main
 
 import (
 	doctor2 "OpenSchedule/controller/doctor/doctor"
-	"OpenSchedule/controller/doctor/schedule"
 	"OpenSchedule/controller/job"
 	"OpenSchedule/controller/user"
 	"OpenSchedule/database"
+	"OpenSchedule/model/doctor"
 	"OpenSchedule/router"
 	"OpenSchedule/service/doctorService"
 	"OpenSchedule/service/scheduleService"
@@ -48,7 +48,7 @@ func configureDoctorMVC(app *mvc.Application) {
 func configureScheduleSettingsMVC(app *mvc.Application) {
 	scheduleService := scheduleService.NewService()
 	app.Register(scheduleService)
-	app.Handle(new(schedule.ScheduleController))
+	app.Handle(new(doctor.ScheduleSettings))
 }
 
 func configureUerMVC(app *mvc.Application) {
