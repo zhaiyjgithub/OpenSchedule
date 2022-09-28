@@ -151,7 +151,7 @@ func (c *Controller) GetTimeSlots() {
 	startDate, err := time.Parse(time.RFC3339, p.StartDate)
 	endDate, err := time.Parse(time.RFC3339, p.EndDate)
 	if err != nil {
-		response.Fail(c.Ctx, response.Error, "param error: start date", nil)
+		response.Fail(c.Ctx, response.Error, "param error: start date or end date", nil)
 		return
 	}
 	startDateUTC := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)

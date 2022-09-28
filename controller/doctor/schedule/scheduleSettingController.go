@@ -6,6 +6,7 @@ import (
 	"OpenSchedule/router"
 	"OpenSchedule/service/scheduleService"
 	"OpenSchedule/utils"
+	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"time"
@@ -98,7 +99,7 @@ func (c *Controller) AddAppointment() {
 		DoctorID               int       `json:"doctorId" validate:"required"`
 		Npi                    int64     `json:"npi" validate:"required"`
 		AppointmentType        int       `json:"appointmentType"`
-		AppointmentDate        time.Time `json:"appointmentDate" validate:"required"`
+		AppointmentDate        string `json:"appointmentDate" validate:"required"`
 		AppointmentStatus      int       `json:"appointmentStatus" validate:"required"`
 		Memo                   string    `json:"memo"`
 		Offset                 int       `json:"offset"`
@@ -119,11 +120,15 @@ func (c *Controller) AddAppointment() {
 		return
 	}
 
+	aptDate, err := time.Parse(time.RFC3339, p.AppointmentDate)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	appt := doctor.Appointment{
 		DoctorID:               p.DoctorID,
 		Npi:                    p.Npi,
 		AppointmentType:        p.AppointmentType,
-		AppointmentDate:        p.AppointmentDate,
+		AppointmentDate:        aptDate,
 		AppointmentStatus:      p.AppointmentStatus,
 		Memo:                   p.Memo,
 		Offset:                 p.Offset,
@@ -138,8 +143,9 @@ func (c *Controller) AddAppointment() {
 		Insurance:              p.Insurance,
 		VisitReason:            p.VisitReason,
 		IsNewPatient:           p.IsNewPatient,
+		CreatedDate: time.Now().UTC(),
 	}
-	err := c.ScheduleService.AddAppointment(appt)
+	err = c.ScheduleService.AddAppointment(appt)
 	if err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	} else {
