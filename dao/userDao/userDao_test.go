@@ -2,18 +2,18 @@
  * @author zhaiyuanji
  * @date 2022年06月11日 8:46 上午
  */
-package user
+package userDao
 
 import (
 	"OpenSchedule/database"
-	"OpenSchedule/model/user"
+	"OpenSchedule/model/userModel"
 	"fmt"
 	"testing"
 )
 
 func TestDao_CreateSubUser(t *testing.T) {
 	d := NewUserDao(database.GetMySqlEngine())
-	subUser := user.SubUsers{
+	subUser := userModel.SubUsers{
 		FirstName: "Yuanji",
 		LastName:  "Test",
 		Phone:     "1234567890",
@@ -41,4 +41,17 @@ func TestDao_GetSubUsers(t *testing.T) {
 	d := NewUserDao(database.GetMySqlEngine())
 	users := d.GetSubUsers(4)
 	fmt.Println(users)
+}
+
+func TestDao_UpdateUserProfile(t *testing.T) {
+	d := NewUserDao(database.GetMySqlEngine())
+	state := "New York"
+	u := userModel.UserProfile{
+		UserID: 2,
+		State: &state,
+	}
+	err := d.UpdateUserProfile(u)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

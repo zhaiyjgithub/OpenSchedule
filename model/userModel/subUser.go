@@ -2,7 +2,7 @@
  * @author zhaiyuanji
  * @date 2022年06月11日 8:37 上午
  */
-package user
+package userModel
 
 // SubUsers [...]
 // SubUsers [...]

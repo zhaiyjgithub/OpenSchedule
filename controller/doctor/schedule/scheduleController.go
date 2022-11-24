@@ -119,6 +119,7 @@ func (c *Controller) AddAppointment() {
 		return
 	}
 
+	createdAt := time.Now().UTC()
 	appt := doctor.Appointment{
 		DoctorID:               p.DoctorID,
 		Npi:                    p.Npi,
@@ -138,6 +139,8 @@ func (c *Controller) AddAppointment() {
 		Insurance:              p.Insurance,
 		VisitReason:            p.VisitReason,
 		IsNewPatient:           p.IsNewPatient,
+		CreatedDate: createdAt,
+		UpdatedAt: createdAt,
 	}
 	err := c.ScheduleService.AddAppointment(appt)
 	if err != nil {

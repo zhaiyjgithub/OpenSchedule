@@ -31,4 +31,5 @@ const (
 	CreateSubUser      = "/CreateSubUser"
 	GetSubUsers        = "/GetSubUsers"
 	UpdateSubUserPhone = "/UpdateSubUserPhone"
+	UpdateUserProfile = "/UpdateUserProfile"
 )

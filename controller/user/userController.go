@@ -1,7 +1,7 @@
 package user
 
 import (
-	"OpenSchedule/model/user"
+	"OpenSchedule/model/userModel"
 	"OpenSchedule/response"
 	"OpenSchedule/router"
 	"OpenSchedule/service/userService"
@@ -23,6 +23,7 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, router.CreateSubUser, "CreateSubUser")
 	b.Handle(http.MethodPost, router.GetSubUsers, "GetSubUsers")
 	b.Handle(http.MethodPost, router.UpdateSubUserPhone, "UpdateSubUserPhone")
+	b.Handle(http.MethodPost, router.UpdateUserProfile, "UpdateUserProfile")
 }
 
 func (c *Controller) CreateUser() {
@@ -41,7 +42,7 @@ func (c *Controller) CreateUser() {
 		return
 	}
 
-	u := user.User{
+	u := userModel.User{
 		FirstName: p.FirstName,
 		LastName:  p.LastName,
 		Gender:    p.Gender,
@@ -110,7 +111,7 @@ func (c *Controller) CreateSubUser() {
 		return
 	}
 
-	u := user.SubUsers{
+	u := userModel.SubUsers{
 		FirstName: p.FirstName,
 		LastName:  p.LastName,
 		Email:     p.Email,
@@ -126,6 +127,15 @@ func (c *Controller) CreateSubUser() {
 	} else {
 		response.Success(c.Ctx, response.Successful, nil)
 	}
+}
+
+func (c *Controller) UpdateUserProfile()  {
+	var p userModel.UserProfile
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	err := c.UserService.UpdateUserProfile(p)
+	response.Success(c.Ctx, response.Successful, err)
 }
 
 func (c *Controller) GetSubUsers() {
