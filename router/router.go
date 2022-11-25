@@ -32,4 +32,7 @@ const (
 	GetSubUsers        = "/GetSubUsers"
 	UpdateSubUserPhone = "/UpdateSubUserPhone"
 	UpdateUserProfile = "/UpdateUserProfile"
+	GetUserByID = "/GetUserByID"
+	GetUserInsurance = "/GetUserInsurance"
+	UpdateUserInsurance = "/UpdateUserInsurance"
 )

@@ -24,6 +24,9 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, router.GetSubUsers, "GetSubUsers")
 	b.Handle(http.MethodPost, router.UpdateSubUserPhone, "UpdateSubUserPhone")
 	b.Handle(http.MethodPost, router.UpdateUserProfile, "UpdateUserProfile")
+	b.Handle(http.MethodPost, router.GetUserByID, "GetUserByID")
+	b.Handle(http.MethodPost, router.GetUserInsurance, "GetUserInsurance")
+	b.Handle(http.MethodPost, router.UpdateUserInsurance, "UpdateUserInsurance")
 }
 
 func (c *Controller) CreateUser() {
@@ -70,6 +73,22 @@ func (c *Controller) GetUserByEmail() {
 	u := c.UserService.GetUserByEmail(p.Email)
 	if u.Email != p.Email {
 		response.Fail(c.Ctx, response.Error, response.NotFound, nil)
+	} else {
+		response.Success(c.Ctx, response.Successful, u)
+	}
+}
+
+func (c *Controller) GetUserByID() {
+	type Param struct {
+		UserID int `json:"userID" validate:"required"`
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	u, err := c.UserService.GetUserByID(p.UserID)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	} else {
 		response.Success(c.Ctx, response.Successful, u)
 	}

@@ -55,3 +55,33 @@ func TestDao_UpdateUserProfile(t *testing.T) {
 		fmt.Println(err)
 	}
 }
+
+func TestDao_GetUserByID(t *testing.T) {
+	d := NewUserDao(database.GetMySqlEngine())
+	id := 999
+	u, err := d.GetUserByID(id)
+	if err != nil {
+		fmt.Println(u, err.Error())
+	}
+}
+
+func TestDao_UpdateUserInsurance(t *testing.T) {
+	d := NewUserDao(database.GetMySqlEngine())
+	ins := []userModel.UserInsurance{
+		{ID: 0, UserID: 3, Type: 0, PlanID: "test2", MemberID: "0099"},
+	}
+	err := d.UpdateUserInsurance(ins)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+func TestDao_GetUserInsurance(t *testing.T) {
+	d := NewUserDao(database.GetMySqlEngine())
+	ins, err := d.GetUserInsurance(2)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(ins)
+	}
+}

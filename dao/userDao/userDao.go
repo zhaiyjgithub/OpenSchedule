@@ -30,6 +30,12 @@ func (d *Dao) GetUserByEmail(email string) userModel.User {
 	return user
 }
 
+func (d *Dao) GetUserByID(userID int) (userModel.User, error) {
+	var user userModel.User
+	db := d.db.Where("id = ?", userID).First(&user)
+	return user, db.Error
+}
+
 func (d *Dao) CreateSubUser(subUser userModel.SubUsers) error {
 	db := d.db.Create(&subUser)
 	return db.Error

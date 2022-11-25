@@ -17,6 +17,9 @@ type Service interface {
 	GetSubUsers(userId int) []userModel.SubUsers
 	UpdateSubUserPhone(userID int, phone string) error
 	UpdateUserProfile(user userModel.UserProfile) error
+	GetUserByID(userID int) (userModel.User, error)
+	GetUserInsurance(userID int) ([]userModel.UserInsurance, error)
+	UpdateUserInsurance(ins []userModel.UserInsurance) error
 }
 
 func NewService() Service {
@@ -49,4 +52,8 @@ func (s *service) UpdateSubUserPhone(userID int, phone string) error {
 
 func (s *service) UpdateUserProfile(user userModel.UserProfile) error {
 	return s.dao.UpdateUserProfile(user)
+}
+
+func (s *service) GetUserByID(userID int) (userModel.User, error) {
+	return s.dao.GetUserByID(userID)
 }
