@@ -24,11 +24,11 @@ func (c *Controller) GetUserInsurance()  {
 
 func (c *Controller) UpdateUserInsurance()  {
 	type Insurance struct {
-		ID int `json:"id"`
-		UserID int `json:"userID"`
-		PlanID string `json:"planID" validate:"required"`
-		MemberID string `json:"memberID" validate:"required"`
-		Photo string `json:"photo" validate:"omitempty,url"`
+		ID int
+		UserID int
+		PlanID string `validate:"required"`
+		MemberID string
+		Photo string `validate:"omitempty,url"`
 	}
 	type Param struct {
 		Insurances []Insurance `json:"insurances" validate:"required,dive"`
