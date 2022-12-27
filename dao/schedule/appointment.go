@@ -44,3 +44,9 @@ func (d *Dao) GetAppointmentsByRange(
 		npi, appointmentStatus, startDate, endDate).Find(&appts)
 	return appts
 }
+
+func (d *Dao) GetAppointment(patientID int, page int, pageSize int) ([]doctor.Appointment, error) {
+	var appts []doctor.Appointment
+	db := d.engine.Order("created_at desc").Where("patient_id = ?", patientID).Limit(pageSize).Offset((page - 1) *pageSize).Find(&appts)
+	return appts, db.Error
+}

@@ -24,6 +24,7 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(iris.MethodPost, router.DeleteClosedDateSettings, "DeleteClosedDateSettings")
 	b.Handle(iris.MethodPost, router.GetClosedDateSettings, "GetClosedDateSettings")
 	b.Handle(iris.MethodPost, router.AddAppointment, "AddAppointment")
+	b.Handle(iris.MethodPost, router.GetAppointmentByPage, "GetAppointmentByPage")
 }
 
 func (c *Controller) SetScheduleSettings() {
@@ -151,5 +152,23 @@ func (c *Controller) AddAppointment() {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	} else {
 		response.Success(c.Ctx, response.Successful, nil)
+	}
+}
+
+func (c *Controller) GetAppointmentByPage() {
+	type Param struct {
+		PatientID int `validate:"gt=1"`
+		Page int `validate:"gte=1"`
+		PageSize int `validate:"gte=5"`
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	appts, err := c.ScheduleService.GetAppointment(p.PatientID, p.Page, p.PageSize)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
+	} else {
+		response.Success(c.Ctx, response.Successful, appts)
 	}
 }

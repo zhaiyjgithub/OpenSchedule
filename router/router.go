@@ -21,6 +21,7 @@ const (
 	DeleteClosedDateSettings = "/DeleteClosedDateSettings"
 	GetClosedDateSettings    = "/GetClosedDateSettings"
 	AddAppointment           = "/AddAppointment"
+	GetAppointmentByPage = "/GetAppointmentByPage"
 )
 
 const (

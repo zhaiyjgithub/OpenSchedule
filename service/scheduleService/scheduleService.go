@@ -49,6 +49,7 @@ type Service interface {
 		closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay
 	GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error)
 	CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) (bool, error)
+	GetAppointment(patientID int, page int, pageSize int) ([]doctor.Appointment, error)
 }
 
 func NewService() Service {
@@ -406,4 +407,8 @@ func (s *service) CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) 
 		}
 	}
 	return false, nil
+}
+
+func (s *service) GetAppointment(patientID int, page int, pageSize int) ([]doctor.Appointment, error) {
+	return s.dao.GetAppointment(patientID, page, pageSize)
 }
