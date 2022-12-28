@@ -1,9 +1,9 @@
-package schedule
+package scheduleDao
 
 import (
 	"OpenSchedule/constant"
 	"OpenSchedule/database"
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"OpenSchedule/utils"
 	"context"
 	"errors"
@@ -105,7 +105,7 @@ func (d *Dao) DeleteESDoctorById(esId string) error {
 	return err
 }
 
-func (d *Dao) SyncDoctorToES(doctor *doctor.Doctor) error {
+func (d *Dao) SyncDoctorToES(doctor *doctorModel.Doctor) error {
 	return nil
 }
 
@@ -124,7 +124,7 @@ func (d *Dao) GetDuplicateDoctorInfoFromES(npi int64) []string {
 	return esIds
 }
 
-func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings doctor.ScheduleSettings) string {
+func (d *Dao) CalcNextAvailableDate(currentTime time.Time, appointmentType constant.AppointmentType, settings doctorModel.ScheduleSettings) string {
 	duration := settings.DurationPerSlot
 	number := settings.NumberPerSlot
 	nextAvailableDate := ""
@@ -241,7 +241,7 @@ func (d *Dao) CalcNextAvailableDateForEachWeekDay(currentTime time.Time, appoint
 	amAppointmentType constant.AppointmentType, isAmEnable bool, weekDayAMStartDateTime time.Time, weekDayAMEndTime time.Time,
 	pmAppointmentType constant.AppointmentType, isPmEnable bool, weekDayPMStartDateTime time.Time, weekDayPMEndTime time.Time,
 	durationOfSlot int, numberOfSlot int,
-	closedDateSettings *doctor.ClosedDateSettings) string {
+	closedDateSettings *doctorModel.ClosedDateSettings) string {
 	//calc the next available date by the closed date.
 	var amStartTime, amEndTime, pmStartTime, pmEndTime *time.Time
 	if closedDateSettings != nil {
@@ -337,8 +337,8 @@ func (d *Dao) CalcAvailableTimeRangeByClosedDate(currentDateTime time.Time, star
 	}
 }
 
-func (d *Dao) GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSettings {
-	list := make([]doctor.ScheduleSettings, 0)
+func (d *Dao) GetSettingsByNpiList(npiList []int64) []doctorModel.ScheduleSettings {
+	list := make([]doctorModel.ScheduleSettings, 0)
 	if len(npiList) == 0 {
 		return list
 	}

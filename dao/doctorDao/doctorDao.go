@@ -1,9 +1,9 @@
-package doctor
+package doctorDao
 
 import (
 	"OpenSchedule/constant"
 	"OpenSchedule/database"
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"OpenSchedule/model/viewModel"
 	"context"
 	"encoding/json"
@@ -241,14 +241,14 @@ func (d *Dao) GetDoctorTimeSlots(npi int64) {
 
 }
 
-func (d *Dao) GetDoctorByPage(page int, pageSize int) []*doctor.Doctor {
-	var doctors []*doctor.Doctor
+func (d *Dao) GetDoctorByPage(page int, pageSize int) []*doctorModel.Doctor {
+	var doctors []*doctorModel.Doctor
 	_ = d.mainEngine.Limit(pageSize).Offset(pageSize * (page - 1)).Find(&doctors)
 	return doctors
 }
 
-func (d *Dao) GetDoctor(npi int64) doctor.Doctor {
-	var doc doctor.Doctor
+func (d *Dao) GetDoctor(npi int64) doctorModel.Doctor {
+	var doc doctorModel.Doctor
 	_ = d.mainEngine.Where("npi = ?", npi).First(&doc)
 	return doc
 }
@@ -261,12 +261,12 @@ func (d *Dao) GetDoctorDetail(npi int64) viewModel.DoctorDetailInfo {
 
 func (d *Dao) IsExist(npi int64) bool {
 	var count int64
-	_ = d.mainEngine.Model(&doctor.Doctor{}).Where("npi = ?", npi).Count(&count)
+	_ = d.mainEngine.Model(&doctorModel.Doctor{}).Where("npi = ?", npi).Count(&count)
 	return count > 0
 }
 
-func (d *Dao) SaveDoctor(doc *doctor.Doctor) error {
-	var doctor doctor.Doctor
+func (d *Dao) SaveDoctor(doc *doctorModel.Doctor) error {
+	var doctor doctorModel.Doctor
 	db := d.mainEngine.Where("npi = ?", doc.Npi).First(&doctor)
 	if db.Error != nil {
 		return db.Error
@@ -276,39 +276,39 @@ func (d *Dao) SaveDoctor(doc *doctor.Doctor) error {
 	return db.Error
 }
 
-func (d *Dao) GetAffiliation(npi int64) []doctor.Affiliations {
-	list := make([]doctor.Affiliations, 0)
+func (d *Dao) GetAffiliation(npi int64) []doctorModel.Affiliations {
+	list := make([]doctorModel.Affiliations, 0)
 	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
 	return list
 }
 
-func (d *Dao) GetClinic(npi int64) []doctor.Clinicals {
-	list := make([]doctor.Clinicals, 0)
+func (d *Dao) GetClinic(npi int64) []doctorModel.Clinicals {
+	list := make([]doctorModel.Clinicals, 0)
 	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
 	return list
 }
 
-func (d *Dao) GetAwards(npi int64) []doctor.Awards {
-	list := make([]doctor.Awards, 0)
+func (d *Dao) GetAwards(npi int64) []doctorModel.Awards {
+	list := make([]doctorModel.Awards, 0)
 	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
 	return list
 }
 
-func (d *Dao) GetCertification(npi int64) []doctor.Certifications {
-	list := make([]doctor.Certifications, 0)
+func (d *Dao) GetCertification(npi int64) []doctorModel.Certifications {
+	list := make([]doctorModel.Certifications, 0)
 	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
 	return list
 }
 
-func (d *Dao) GetEducation(npi int64) []doctor.Educations {
-	list := make([]doctor.Educations, 0)
+func (d *Dao) GetEducation(npi int64) []doctorModel.Educations {
+	list := make([]doctorModel.Educations, 0)
 	_ = d.mainEngine.Where("npi = ?", npi).Find(&list)
 	return list
 }
 
 func (d *Dao) GetInsurance(npi int64) string {
 	var insuranceName string
-	_ = d.mainEngine.Model(doctor.Insurances{}).Select("name").Where("npi = ?", npi).Find(&insuranceName)
+	_ = d.mainEngine.Model(doctorModel.Insurances{}).Select("name").Where("npi = ?", npi).Find(&insuranceName)
 	return insuranceName
 }
 
@@ -350,9 +350,9 @@ func (d *Dao) SyncInsurance() {
 	for {
 		npiList := make([]int64, 0)
 		_ = d.mainEngine.Raw("select npi from doctors limit ? offset ? ", pageSize, page*pageSize).Scan(&npiList)
-		insuranceList := make([]doctor.Insurances, 0)
+		insuranceList := make([]doctorModel.Insurances, 0)
 		for _, npi := range npiList {
-			insuranceList = append(insuranceList, doctor.Insurances{
+			insuranceList = append(insuranceList, doctorModel.Insurances{
 				Name: strings.Join(getRandList(), ", "),
 				Npi:  npi,
 			})

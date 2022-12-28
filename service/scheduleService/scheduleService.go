@@ -2,9 +2,9 @@ package scheduleService
 
 import (
 	"OpenSchedule/constant"
-	"OpenSchedule/dao/schedule"
+	"OpenSchedule/dao/scheduleDao"
 	"OpenSchedule/database"
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"OpenSchedule/model/viewModel"
 	"errors"
 	"fmt"
@@ -13,62 +13,62 @@ import (
 )
 
 type Service interface {
-	SetScheduleSettings(settings doctor.ScheduleSettings) error
-	GetScheduleSettings(npi int64) doctor.ScheduleSettings
-	AddClosedDate(closeDateSettings doctor.ClosedDateSettings) error
+	SetScheduleSettings(settings doctorModel.ScheduleSettings) error
+	GetScheduleSettings(npi int64) doctorModel.ScheduleSettings
+	AddClosedDate(closeDateSettings doctorModel.ClosedDateSettings) error
 	DeleteClosedDate(npi int64, id int) error
-	GetClosedDate(npi int64) []doctor.ClosedDateSettings
-	SyncCertainDoctorScheduleNextAvailableDateToES(settings doctor.ScheduleSettings) error
-	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error
+	GetClosedDate(npi int64) []doctorModel.ClosedDateSettings
+	SyncCertainDoctorScheduleNextAvailableDateToES(settings doctorModel.ScheduleSettings) error
+	SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctorModel.Doctor) error
 	IsExist(npi int64) bool
-	SyncDoctorToES(doctor *doctor.Doctor) error
-	AddAppointment(appointment doctor.Appointment) error
+	SyncDoctorToES(doctor *doctorModel.Doctor) error
+	AddAppointment(appointment doctorModel.Appointment) error
 	GetAppointmentByRange(
 		npi int64,
 		appointmentStatus constant.AppointmentStatus,
 		startDate time.Time,
 		endDate time.Time,
-	) []*doctor.Appointment
+	) []*doctorModel.Appointment
 	GetAppointmentsByDate(
 		npi int64,
 		startDate time.Time,
 		endDate time.Time,
-	) ([]doctor.Appointment, error)
+	) ([]doctorModel.Appointment, error)
 	GetAppointmentsByRange(
 		npi []int64,
 		appointmentStatus constant.AppointmentStatus,
 		startDate time.Time,
 		endDate time.Time,
-	) []*doctor.Appointment
-	GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSettings
-	GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings
-	GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctor.TimeSlot
-	GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings
-	GetScheduleSettingByNpiList(npiList []int64) map[int64]doctor.ScheduleSettings
-	GetDoctorTimeSlotsByDate(setting doctor.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctor.TimeSlot,
-		closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay
-	GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error)
+	) []*doctorModel.Appointment
+	GetSettingsByNpiList(npiList []int64) []doctorModel.ScheduleSettings
+	GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctorModel.ClosedDateSettings
+	GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctorModel.TimeSlot
+	GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctorModel.ClosedDateSettings
+	GetScheduleSettingByNpiList(npiList []int64) map[int64]doctorModel.ScheduleSettings
+	GetDoctorTimeSlotsByDate(setting doctorModel.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctorModel.TimeSlot,
+		closeDateSetting []doctorModel.ClosedDateSettings) []viewModel.TimeSlotPerDay
+	GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctorModel.TimeSlot, error)
 	CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) (bool, error)
-	GetAppointment(patientID int, page int, pageSize int) ([]doctor.Appointment, error)
+	GetAppointmentInfo(patientID int, page int, pageSize int) ([]viewModel.AppointmentInfo, error)
 }
 
 func NewService() Service {
-	return &service{dao: schedule.NewDao(database.GetMySqlEngine(), database.GetElasticSearchEngine())}
+	return &service{dao: scheduleDao.NewDao(database.GetMySqlEngine(), database.GetElasticSearchEngine())}
 }
 
 type service struct {
-	dao *schedule.Dao
+	dao *scheduleDao.Dao
 }
 
-func (s *service) SetScheduleSettings(setting doctor.ScheduleSettings) error {
+func (s *service) SetScheduleSettings(setting doctorModel.ScheduleSettings) error {
 	return s.dao.SetScheduleSettings(setting)
 }
 
-func (s *service) GetScheduleSettings(npi int64) doctor.ScheduleSettings {
+func (s *service) GetScheduleSettings(npi int64) doctorModel.ScheduleSettings {
 	return s.dao.GetScheduleSettings(npi)
 }
 
-func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings doctor.ScheduleSettings) error {
+func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings doctorModel.ScheduleSettings) error {
 	if settings.Npi == 0 {
 		return errors.New("param is nil")
 	}
@@ -85,7 +85,7 @@ func (s *service) SyncCertainDoctorScheduleNextAvailableDateToES(settings doctor
 		nextAvailableDateInClinic, nextAvailableDateVirtual)
 }
 
-func (s *service) SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctor.Doctor) error {
+func (s *service) SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*doctorModel.Doctor) error {
 	var reqs []*elastic.BulkUpdateRequest
 	for _, doc := range doctors {
 		settings := s.GetScheduleSettings(doc.Npi)
@@ -115,7 +115,7 @@ func (s *service) SyncMultiDoctorsScheduleNextAvailableDateToES(doctors []*docto
 	return s.dao.BulkUpdateToES(reqs)
 }
 
-func (s *service) AddClosedDate(closeDateSettings doctor.ClosedDateSettings) error {
+func (s *service) AddClosedDate(closeDateSettings doctorModel.ClosedDateSettings) error {
 	return s.dao.AddClosedDate(closeDateSettings)
 }
 
@@ -123,7 +123,7 @@ func (s *service) DeleteClosedDate(npi int64, id int) error {
 	return s.dao.DeleteClosedDateByID(npi, id)
 }
 
-func (s *service) GetClosedDate(npi int64) []doctor.ClosedDateSettings {
+func (s *service) GetClosedDate(npi int64) []doctorModel.ClosedDateSettings {
 	return s.dao.GetClosedDate(npi)
 }
 
@@ -131,11 +131,11 @@ func (s *service) IsExist(npi int64) bool {
 	return s.dao.IsExist(npi)
 }
 
-func (s *service) SyncDoctorToES(doctor *doctor.Doctor) error {
+func (s *service) SyncDoctorToES(doctor *doctorModel.Doctor) error {
 	return s.dao.SyncDoctorToES(doctor)
 }
 
-func (s *service) AddAppointment(appointment doctor.Appointment) error {
+func (s *service) AddAppointment(appointment doctorModel.Appointment) error {
 	ok, err := s.CheckTimeSlotIsAvailable(appointment.Npi, appointment.AppointmentDate)
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (s *service) GetAppointmentByRange(
 	appointmentStatus constant.AppointmentStatus,
 	startDate time.Time,
 	endDate time.Time,
-) []*doctor.Appointment {
+) []*doctorModel.Appointment {
 	return s.dao.GetAppointmentByRange(npi, appointmentStatus, startDate, endDate)
 }
 
@@ -161,7 +161,7 @@ func (s *service) GetAppointmentsByRange(
 	appointmentStatus constant.AppointmentStatus,
 	startDate time.Time,
 	endDate time.Time,
-) []*doctor.Appointment {
+) []*doctorModel.Appointment {
 	return s.dao.GetAppointmentsByRange(npi, appointmentStatus, startDate, endDate)
 }
 
@@ -169,70 +169,69 @@ func (s *service) GetAppointmentsByDate(
 	npi int64,
 	startDate time.Time,
 	endDate time.Time,
-) ([]doctor.Appointment, error) {
+) ([]doctorModel.Appointment, error) {
 	return s.dao.GetAppointmentByDate(npi, startDate, endDate)
 }
 
-
-func (s *service) GetSettingsByNpiList(npiList []int64) []doctor.ScheduleSettings {
+func (s *service) GetSettingsByNpiList(npiList []int64) []doctorModel.ScheduleSettings {
 	return s.dao.GetSettingsByNpiList(npiList)
 }
 
-func (s *service) GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctor.ClosedDateSettings {
+func (s *service) GetClosedDateByRange(npi []int64, from time.Time, to time.Time) []doctorModel.ClosedDateSettings {
 	return s.dao.GetClosedDateByRange(npi, from, to)
 }
 
 // todo: Refactor appoint type
 
-func (s *service) GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctor.TimeSlot {
+func (s *service) GetBookedAppointmentsTimeSlotsByNpiList(npiList []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctorModel.TimeSlot {
 	appointments := s.GetAppointmentsByRange(npiList, constant.Requested, startDate, endTime)
-	bTimeSlots := make(map[int64]map[string][]doctor.TimeSlot)
+	bTimeSlots := make(map[int64]map[string][]doctorModel.TimeSlot)
 	for _, appt := range appointments {
 		bookedTimeSlotsPerNpi, ok := bTimeSlots[appt.Npi]
 		offset := appt.AppointmentDate.Hour()*60 + appt.AppointmentDate.Minute()
 		dateKey := fmt.Sprintf("%d-%d-%d", appt.AppointmentDate.Year(), appt.AppointmentDate.Month(), appt.AppointmentDate.Day())
 		if !ok {
-			bookedTimeSlotsPerNpi = make(map[string][]doctor.TimeSlot)
-			bookedTimeSlotsPerNpi[dateKey] = []doctor.TimeSlot{{Offset: offset, AvailableSlotsNumber: 1}}
+			bookedTimeSlotsPerNpi = make(map[string][]doctorModel.TimeSlot)
+			bookedTimeSlotsPerNpi[dateKey] = []doctorModel.TimeSlot{{Offset: offset, AvailableSlotsNumber: 1}}
 		} else {
-			bookedTimeSlotsPerNpi[dateKey] = append(bookedTimeSlotsPerNpi[dateKey], doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
+			bookedTimeSlotsPerNpi[dateKey] = append(bookedTimeSlotsPerNpi[dateKey], doctorModel.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
 		}
 		bTimeSlots[appt.Npi] = bookedTimeSlotsPerNpi
 	}
 	return bTimeSlots
 }
 
-func (s *service) GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings {
+func (s *service) GetClosedDateByNpiList(npiList []int64, startDate time.Time, endDate time.Time) map[int64][]doctorModel.ClosedDateSettings {
 	closeDateSettings := s.GetClosedDateByRange(npiList, startDate, endDate)
-	settingMap := make(map[int64][]doctor.ClosedDateSettings)
+	settingMap := make(map[int64][]doctorModel.ClosedDateSettings)
 	for _, setting := range closeDateSettings {
 		settingMap[setting.Npi] = append(settingMap[setting.Npi], setting)
 	}
 	return settingMap
 }
 
-func (s *service) GetScheduleSettingByNpiList(npiList []int64) map[int64]doctor.ScheduleSettings {
+func (s *service) GetScheduleSettingByNpiList(npiList []int64) map[int64]doctorModel.ScheduleSettings {
 	list := s.GetSettingsByNpiList(npiList)
-	settingMap := make(map[int64]doctor.ScheduleSettings)
+	settingMap := make(map[int64]doctorModel.ScheduleSettings)
 	for _, setting := range list {
 		settingMap[setting.Npi] = setting
 	}
 	return settingMap
 }
 
-func (s *service) GetDoctorTimeSlotsByDate(setting doctor.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctor.TimeSlot,
-	closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay {
+func (s *service) GetDoctorTimeSlotsByDate(setting doctorModel.ScheduleSettings, startDate time.Time, endDate time.Time, bookedTimeSlots map[string][]doctorModel.TimeSlot,
+	closeDateSetting []doctorModel.ClosedDateSettings) []viewModel.TimeSlotPerDay {
 	timeSlots := make([]viewModel.TimeSlotPerDay, 0)
 	dateRange := int(endDate.Sub(startDate).Hours() / 24)
 	for i := 0; i < dateRange; i++ {
 		targetDate := startDate.AddDate(0, 0, i)
 		dateKey := fmt.Sprintf("%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
 		bookedTimeSlots, ok := bookedTimeSlots[dateKey]
-		timeSlotsPerDay := make([]doctor.TimeSlot, 0)
+		timeSlotsPerDay := make([]doctorModel.TimeSlot, 0)
 		if ok {
 			timeSlotsPerDay = s.GetDoctorTimeSlotsPerDay(setting, targetDate, bookedTimeSlots)
 		} else {
-			timeSlotsPerDay = s.GetDoctorTimeSlotsPerDay(setting, targetDate, make([]doctor.TimeSlot, 0))
+			timeSlotsPerDay = s.GetDoctorTimeSlotsPerDay(setting, targetDate, make([]doctorModel.TimeSlot, 0))
 		}
 		targetClosetDate := s.getClosedDateByDate(closeDateSetting, targetDate)
 		filterTimeSlotsPerDay := s.filterTimeSlotsByClosedDate(targetDate, timeSlotsPerDay, targetClosetDate)
@@ -241,8 +240,8 @@ func (s *service) GetDoctorTimeSlotsByDate(setting doctor.ScheduleSettings, star
 	return timeSlots
 }
 
-func (s *service) getClosedDateByDate(closedDateList []doctor.ClosedDateSettings, targetDate time.Time) doctor.ClosedDateSettings {
-	var targetClosedDate doctor.ClosedDateSettings
+func (s *service) getClosedDateByDate(closedDateList []doctorModel.ClosedDateSettings, targetDate time.Time) doctorModel.ClosedDateSettings {
+	var targetClosedDate doctorModel.ClosedDateSettings
 	for i := 0; i < len(closedDateList); i++ {
 		closedDate := closedDateList[i]
 		if closedDate.StartDate.Year() == targetDate.Year() &&
@@ -255,11 +254,11 @@ func (s *service) getClosedDateByDate(closedDateList []doctor.ClosedDateSettings
 	return targetClosedDate
 }
 
-func (s *service) filterTimeSlotsByClosedDate(targetDate time.Time, timeSlots []doctor.TimeSlot, closedDate doctor.ClosedDateSettings) []doctor.TimeSlot {
+func (s *service) filterTimeSlotsByClosedDate(targetDate time.Time, timeSlots []doctorModel.TimeSlot, closedDate doctorModel.ClosedDateSettings) []doctorModel.TimeSlot {
 	if closedDate.AmStartDateTime.IsZero() && closedDate.PmStartDateTime.IsZero() {
 		return timeSlots
 	}
-	var filterList []doctor.TimeSlot
+	var filterList []doctorModel.TimeSlot
 	targetDateZero := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 0, 0, 0, 0, time.UTC)
 	for _, timeSlot := range timeSlots {
 		timeSlotDateTime := targetDateZero.Add(time.Minute * time.Duration(timeSlot.Offset))
@@ -275,7 +274,7 @@ func (s *service) filterTimeSlotsByClosedDate(targetDate time.Time, timeSlots []
 	return filterList
 }
 
-func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot {
+func (s *service) GetDoctorTimeSlotsPerDay(setting doctorModel.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctorModel.TimeSlot) []doctorModel.TimeSlot {
 	weekDay := targetDate.Weekday()
 	amStartTimeOffset := 0
 	amEndTimeOffset := 0
@@ -323,12 +322,12 @@ func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targ
 		currentOffSet = targetDate.Hour()*60 + targetDate.Minute()
 	}
 
-	timeSlots := make([]doctor.TimeSlot, 0)
+	timeSlots := make([]doctorModel.TimeSlot, 0)
 	for i := amStartTimeOffset; i <= amEndTimeOffset+amStartTimeOffset; i += setting.DurationPerSlot {
 		if i < currentOffSet {
 			continue
 		}
-		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
+		timeSlot := doctorModel.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
 		numberOfBooked := getBookedNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
 		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
@@ -343,7 +342,7 @@ func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targ
 		if i < currentOffSet {
 			continue
 		}
-		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
+		timeSlot := doctorModel.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
 		numberOfBooked := getBookedNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
 		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
@@ -357,7 +356,7 @@ func (s *service) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targ
 	return timeSlots
 }
 
-func getBookedNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctor.TimeSlot) int {
+func getBookedNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctorModel.TimeSlot) int {
 	bookedNumber := 0
 	for _, ts := range bookedTimeSlots {
 		if ts.Offset <= currentOffset && ts.Offset > currentOffset-duration {
@@ -367,9 +366,9 @@ func getBookedNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots 
 	return bookedNumber
 }
 
-func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctor.TimeSlot, error) {
+func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doctorModel.TimeSlot, error) {
 	l := []int64{npi}
-	var timeSlots []doctor.TimeSlot
+	var timeSlots []doctorModel.TimeSlot
 	setting := s.GetScheduleSettings(npi)
 	if setting.Npi == 0 {
 		return timeSlots, errors.New("npi not found")
@@ -379,15 +378,15 @@ func (s *service) GetOneDayTimeSlotByNpi(npi int64, targetDate time.Time) ([]doc
 	closedDateMap := s.GetClosedDateByNpiList(l, targetDate, endDate)
 	dateKey := fmt.Sprintf("%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
 	bookedTimeSlotsForNpi, ok := allBookedTimeSlotsMap[npi]
-	var bookedTimeSlotInTargetDate []doctor.TimeSlot
+	var bookedTimeSlotInTargetDate []doctorModel.TimeSlot
 	if !ok {
-		bookedTimeSlotInTargetDate = make([]doctor.TimeSlot, 0)
+		bookedTimeSlotInTargetDate = make([]doctorModel.TimeSlot, 0)
 	} else {
 		bookedTimeSlotInTargetDate = bookedTimeSlotsForNpi[dateKey]
 	}
 	closeDateList, ok := closedDateMap[npi]
 	if !ok {
-		closeDateList = []doctor.ClosedDateSettings{}
+		closeDateList = []doctorModel.ClosedDateSettings{}
 	}
 	allTimeSlots := s.GetDoctorTimeSlotsPerDay(setting, targetDate, bookedTimeSlotInTargetDate)
 	targetClosetDate := s.getClosedDateByDate(closeDateList, targetDate)
@@ -409,6 +408,6 @@ func (s *service) CheckTimeSlotIsAvailable(npi int64, targetDateTime time.Time) 
 	return false, nil
 }
 
-func (s *service) GetAppointment(patientID int, page int, pageSize int) ([]doctor.Appointment, error) {
-	return s.dao.GetAppointment(patientID, page, pageSize)
+func (s *service) GetAppointmentInfo(patientID int, page int, pageSize int) ([]viewModel.AppointmentInfo, error) {
+	return s.dao.GetAppointmentInfo(patientID, page, pageSize)
 }

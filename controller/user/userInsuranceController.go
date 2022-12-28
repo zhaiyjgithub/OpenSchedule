@@ -6,7 +6,7 @@ import (
 	"OpenSchedule/utils"
 )
 
-func (c *Controller) GetUserInsurance()  {
+func (c *Controller) GetUserInsurance() {
 	type Param struct {
 		UserID int `json:"userID" validate:"required"`
 	}
@@ -22,13 +22,13 @@ func (c *Controller) GetUserInsurance()  {
 	}
 }
 
-func (c *Controller) UpdateUserInsurance()  {
+func (c *Controller) UpdateUserInsurance() {
 	type Insurance struct {
-		ID int
-		UserID int
-		PlanID string `validate:"required"`
+		ID       int
+		UserID   int
+		PlanID   string `validate:"required"`
 		MemberID string
-		Photo string `validate:"omitempty,url"`
+		Photo    string `validate:"omitempty,url"`
 	}
 	type Param struct {
 		Insurances []Insurance `json:"insurances" validate:"required,dive"`
@@ -40,11 +40,11 @@ func (c *Controller) UpdateUserInsurance()  {
 	var ins []userModel.UserInsurance
 	for _, in := range p.Insurances {
 		ins = append(ins, userModel.UserInsurance{
-			ID: in.ID,
-			UserID: in.UserID,
-			PlanID: in.PlanID,
+			ID:       in.ID,
+			UserID:   in.UserID,
+			PlanID:   in.PlanID,
 			MemberID: in.MemberID,
-			Photo: in.Photo,
+			Photo:    in.Photo,
 		})
 	}
 	err := c.UserService.UpdateUserInsurance(ins)

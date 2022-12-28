@@ -1,4 +1,4 @@
-package doctor
+package doctorModel
 
 import (
 	"OpenSchedule/constant"

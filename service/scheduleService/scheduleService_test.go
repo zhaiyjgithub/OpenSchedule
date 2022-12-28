@@ -35,7 +35,7 @@ func TestService_CheckTimeSlotIsAvailable(t *testing.T) {
 
 func TestService_GetAppointment(t *testing.T) {
 	s := NewService()
-	appts, err := s.GetAppointment(2, 1, 10)
+	appts, err := s.GetAppointmentInfo(2, 1, 10)
 	if err != nil {
 		t.Errorf("test failed: %v\r\n", err.Error())
 	} else {

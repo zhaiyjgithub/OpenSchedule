@@ -5,7 +5,7 @@ import "time"
 type UserInsurance struct {
 	ID        int       `gorm:"primaryKey;column:id;type:int(11);not null" json:"ID"`
 	UserID    int       `gorm:"column:user_id;type:int" json:"userID"`
-	Type      int8    `gorm:"column:type;type:tinyint" json:"type"`
+	Type      int8      `gorm:"column:type;type:tinyint" json:"type"`
 	PlanID    string    `gorm:"column:plan_id;type:varchar(50)" json:"planID"`
 	MemberID  string    `gorm:"column:member_id;type:varchar(100)" json:"memberID"`
 	Photo     string    `gorm:"column:photo;type:varchar(100)" json:"photo"`

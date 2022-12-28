@@ -1,10 +1,10 @@
-package schedule
+package scheduleDao
 
 import (
 	"OpenSchedule/constant"
-	dao2 "OpenSchedule/dao/doctor"
+	dao2 "OpenSchedule/dao/doctorDao"
 	"OpenSchedule/database"
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"fmt"
 	"testing"
 	"time"
@@ -115,7 +115,7 @@ func TestDao_AddClosedDate(t *testing.T) {
 	closeEndDate := time.Date(2021, 10, 29, 0, 0, 0, 0, time.UTC)
 	amStartDateTime := time.Date(2021, 10, 28, 10, 0, 0, 0, time.UTC)
 	amEndDateTime := time.Date(2021, 10, 28, 11, 0, 0, 0, time.UTC)
-	st := doctor.ClosedDateSettings{
+	st := doctorModel.ClosedDateSettings{
 		Npi:             testNpi,
 		StartDate:       closeStartDate,
 		EndDate:         closeEndDate,
@@ -166,10 +166,10 @@ func TestDao_GetClosedDate(t *testing.T) {
 	l := dao.GetClosedDate(454344)
 	fmt.Println(l)
 
-	var a []doctor.ClosedDateSettings
+	var a []doctorModel.ClosedDateSettings
 	println(a == nil)
 
-	c := make([]doctor.ClosedDateSettings, 0)
+	c := make([]doctorModel.ClosedDateSettings, 0)
 	println(c == nil)
 }
 

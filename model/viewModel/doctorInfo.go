@@ -1,7 +1,7 @@
 package viewModel
 
 import (
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"github.com/olivere/elastic/v7"
 	"time"
 )
@@ -11,7 +11,7 @@ type Location struct {
 	Lng float64
 }
 type DoctorInfo struct {
-	doctor.Doctor
+	doctorModel.Doctor
 	Location                  elastic.GeoPoint `json:"location"`
 	Distance                  float64          `json:"distance"`
 	NextAvailableDateInClinic string           `json:"nextAvailableDateInClinic"`
@@ -19,19 +19,19 @@ type DoctorInfo struct {
 }
 
 type DoctorDetailInfo struct {
-	doctor.Doctor
-	Lat            float64                 `json:"lat"`
-	Lng            float64                 `json:"lng"`
-	Language       string                  `json:"language"`
-	Awards         []doctor.Awards         `json:"awards"`
-	Certifications []doctor.Certifications `json:"certifications"`
-	Educations     []doctor.Educations     `json:"educations"`
-	Insurances     string                  `json:"insurances"`
+	doctorModel.Doctor
+	Lat            float64                      `json:"lat"`
+	Lng            float64                      `json:"lng"`
+	Language       string                       `json:"language"`
+	Awards         []doctorModel.Awards         `json:"awards"`
+	Certifications []doctorModel.Certifications `json:"certifications"`
+	Educations     []doctorModel.Educations     `json:"educations"`
+	Insurances     string                       `json:"insurances"`
 }
 
 type TimeSlotPerDay struct {
-	Date      time.Time         `json:"date"`
-	TimeSlots []doctor.TimeSlot `json:"timeSlots"`
+	Date      time.Time              `json:"date"`
+	TimeSlots []doctorModel.TimeSlot `json:"timeSlots"`
 }
 
 type BackgroundInfo struct {

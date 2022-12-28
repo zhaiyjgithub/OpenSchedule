@@ -2,7 +2,7 @@ package doctor
 
 import (
 	"OpenSchedule/constant"
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"OpenSchedule/model/viewModel"
 	"OpenSchedule/response"
 	"OpenSchedule/router"
@@ -28,6 +28,7 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle(http.MethodPost, router.SaveDoctor, "SaveDoctor")
 	b.Handle(http.MethodPost, router.GetTimeSlots, "GetTimeSlots")
 	b.Handle(http.MethodPost, router.GetDoctorDetailInfo, "GetDoctorDetailInfo")
+	b.Handle(http.MethodPost, router.DoctorLoin, "DoctorLoin")
 }
 
 func (c *Controller) GetDoctor() {
@@ -114,11 +115,11 @@ func (c *Controller) SearchDoctor() {
 		if ok {
 			bookedTimeSlotsForNpi, ok := bookedTimeSlots[setting.Npi]
 			if !ok {
-				bookedTimeSlotsForNpi = make(map[string][]doctor.TimeSlot)
+				bookedTimeSlotsForNpi = make(map[string][]doctorModel.TimeSlot)
 			}
 			closeDateForNpi, ok := closedDateMap[setting.Npi]
 			if !ok {
-				closeDateForNpi = []doctor.ClosedDateSettings{}
+				closeDateForNpi = []doctorModel.ClosedDateSettings{}
 			}
 			timeSlots := c.ScheduleService.GetDoctorTimeSlotsByDate(setting, startDateUTC, endDateUTC, bookedTimeSlotsForNpi, closeDateForNpi)
 			data = append(data, DoctorDetailInfo{
@@ -167,27 +168,27 @@ func (c *Controller) GetTimeSlots() {
 	closedDateMap := c.ScheduleService.GetClosedDateByNpiList(npiList, startDateUTC, endDateUTC)
 	bookedTimeSlotsForNpi, ok := allBookedTimeSlotsMap[setting.Npi]
 	if !ok {
-		bookedTimeSlotsForNpi = make(map[string][]doctor.TimeSlot)
+		bookedTimeSlotsForNpi = make(map[string][]doctorModel.TimeSlot)
 	}
 	closeDateForNpi, ok := closedDateMap[setting.Npi]
 	if !ok {
-		closeDateForNpi = []doctor.ClosedDateSettings{}
+		closeDateForNpi = []doctorModel.ClosedDateSettings{}
 	}
 	timeSlots := c.ScheduleService.GetDoctorTimeSlotsByDate(setting, startDateUTC, endDateUTC, bookedTimeSlotsForNpi, closeDateForNpi)
 	response.Success(c.Ctx, response.Successful, timeSlots)
 }
 
-func (c *Controller) MappingClosedDateByDateRange(npi []int64, startDate time.Time, endDate time.Time) map[int64][]doctor.ClosedDateSettings {
+func (c *Controller) MappingClosedDateByDateRange(npi []int64, startDate time.Time, endDate time.Time) map[int64][]doctorModel.ClosedDateSettings {
 	closeDateSettings := c.ScheduleService.GetClosedDateByRange(npi, startDate, endDate)
-	settingMap := make(map[int64][]doctor.ClosedDateSettings)
+	settingMap := make(map[int64][]doctorModel.ClosedDateSettings)
 	for _, setting := range closeDateSettings {
 		settingMap[setting.Npi] = append(settingMap[setting.Npi], setting)
 	}
 	return settingMap
 }
 
-func (c *Controller) getClosedDateByDate(closedDateList []doctor.ClosedDateSettings, targetDate time.Time) doctor.ClosedDateSettings {
-	var targetClosedDate doctor.ClosedDateSettings
+func (c *Controller) getClosedDateByDate(closedDateList []doctorModel.ClosedDateSettings, targetDate time.Time) doctorModel.ClosedDateSettings {
+	var targetClosedDate doctorModel.ClosedDateSettings
 	for i := 0; i < len(closedDateList); i++ {
 		closedDate := closedDateList[i]
 		if closedDate.StartDate.Year() == targetDate.Year() &&
@@ -200,11 +201,11 @@ func (c *Controller) getClosedDateByDate(closedDateList []doctor.ClosedDateSetti
 	return targetClosedDate
 }
 
-func (c *Controller) FilterTimeSlotsByClosedDate(targetDate time.Time, timeSlots []doctor.TimeSlot, closedDate doctor.ClosedDateSettings) []doctor.TimeSlot {
+func (c *Controller) FilterTimeSlotsByClosedDate(targetDate time.Time, timeSlots []doctorModel.TimeSlot, closedDate doctorModel.ClosedDateSettings) []doctorModel.TimeSlot {
 	if closedDate.AmStartDateTime.IsZero() && closedDate.PmStartDateTime.IsZero() {
 		return timeSlots
 	}
-	var filterList []doctor.TimeSlot
+	var filterList []doctorModel.TimeSlot
 	targetDateZero := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 0, 0, 0, 0, time.UTC)
 	for _, timeSlot := range timeSlots {
 		timeSlotDateTime := targetDateZero.Add(time.Minute * time.Duration(timeSlot.Offset))
@@ -220,18 +221,18 @@ func (c *Controller) FilterTimeSlotsByClosedDate(targetDate time.Time, timeSlots
 	return filterList
 }
 
-func (c *Controller) GetDoctorTimeSlotsInRange(setting doctor.ScheduleSettings, startDate time.Time, len int, allBookedTimeSlots map[string][]doctor.TimeSlot,
-	closeDateSetting []doctor.ClosedDateSettings) []viewModel.TimeSlotPerDay {
+func (c *Controller) GetDoctorTimeSlotsInRange(setting doctorModel.ScheduleSettings, startDate time.Time, len int, allBookedTimeSlots map[string][]doctorModel.TimeSlot,
+	closeDateSetting []doctorModel.ClosedDateSettings) []viewModel.TimeSlotPerDay {
 	timeSlots := make([]viewModel.TimeSlotPerDay, 0)
 	for i := 0; i < len; i++ {
 		targetDate := startDate.AddDate(0, 0, i)
 		dateKey := fmt.Sprintf("%d-%d-%d", targetDate.Year(), targetDate.Month(), targetDate.Day())
 		bookedTimeSlots, ok := allBookedTimeSlots[dateKey]
-		timeSlotsPerDay := make([]doctor.TimeSlot, 0)
+		timeSlotsPerDay := make([]doctorModel.TimeSlot, 0)
 		if ok {
 			timeSlotsPerDay = c.GetDoctorTimeSlotsPerDay(setting, targetDate, bookedTimeSlots)
 		} else {
-			timeSlotsPerDay = c.GetDoctorTimeSlotsPerDay(setting, targetDate, make([]doctor.TimeSlot, 0))
+			timeSlotsPerDay = c.GetDoctorTimeSlotsPerDay(setting, targetDate, make([]doctorModel.TimeSlot, 0))
 		}
 		targetClosetDate := c.getClosedDateByDate(closeDateSetting, targetDate)
 		filterTimeSlotsPerDay := c.FilterTimeSlotsByClosedDate(targetDate, timeSlotsPerDay, targetClosetDate)
@@ -240,25 +241,25 @@ func (c *Controller) GetDoctorTimeSlotsInRange(setting doctor.ScheduleSettings, 
 	return timeSlots
 }
 
-func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctor.TimeSlot {
+func (c *Controller) ConvertBookedAppointmentsToTimeSlots(npi []int64, startDate time.Time, endTime time.Time) map[int64]map[string][]doctorModel.TimeSlot {
 	appts := c.ScheduleService.GetAppointmentsByRange(npi, constant.Requested, startDate, endTime)
-	allBookedTimeSlots := make(map[int64]map[string][]doctor.TimeSlot)
+	allBookedTimeSlots := make(map[int64]map[string][]doctorModel.TimeSlot)
 	for _, appt := range appts {
 		bookedTimeSlotsPerNpi, ok := allBookedTimeSlots[appt.Npi]
 		offset := appt.AppointmentDate.Hour()*60 + appt.AppointmentDate.Minute()
 		dateKey := fmt.Sprintf("%d-%d-%d", appt.AppointmentDate.Year(), appt.AppointmentDate.Month(), appt.AppointmentDate.Day())
 		if !ok {
-			bookedTimeSlotsPerNpi = make(map[string][]doctor.TimeSlot)
-			bookedTimeSlotsPerNpi[dateKey] = []doctor.TimeSlot{{Offset: offset, AvailableSlotsNumber: 1}}
+			bookedTimeSlotsPerNpi = make(map[string][]doctorModel.TimeSlot)
+			bookedTimeSlotsPerNpi[dateKey] = []doctorModel.TimeSlot{{Offset: offset, AvailableSlotsNumber: 1}}
 		} else {
-			bookedTimeSlotsPerNpi[dateKey] = append(bookedTimeSlotsPerNpi[dateKey], doctor.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
+			bookedTimeSlotsPerNpi[dateKey] = append(bookedTimeSlotsPerNpi[dateKey], doctorModel.TimeSlot{Offset: offset, AvailableSlotsNumber: 1})
 		}
 		allBookedTimeSlots[appt.Npi] = bookedTimeSlotsPerNpi
 	}
 	return allBookedTimeSlots
 }
 
-func (c *Controller) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctor.TimeSlot) []doctor.TimeSlot {
+func (c *Controller) GetDoctorTimeSlotsPerDay(setting doctorModel.ScheduleSettings, targetDate time.Time, bookedTimeSlots []doctorModel.TimeSlot) []doctorModel.TimeSlot {
 	weekDay := targetDate.Weekday()
 	amStartTimeOffset := 0
 	amEndTimeOffset := 0
@@ -306,12 +307,12 @@ func (c *Controller) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, t
 		currentOffSet = targetDate.Hour()*60 + targetDate.Minute()
 	}
 
-	timeSlots := make([]doctor.TimeSlot, 0)
+	timeSlots := make([]doctorModel.TimeSlot, 0)
 	for i := amStartTimeOffset; i <= amEndTimeOffset+amStartTimeOffset; i += setting.DurationPerSlot {
 		if i < currentOffSet {
 			continue
 		}
-		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
+		timeSlot := doctorModel.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
 		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
 		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
@@ -326,7 +327,7 @@ func (c *Controller) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, t
 		if i < currentOffSet {
 			continue
 		}
-		timeSlot := doctor.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
+		timeSlot := doctorModel.TimeSlot{Offset: i, AvailableSlotsNumber: setting.NumberPerSlot}
 		numberOfBooked := getBookNumberOfTimeSlot(timeSlot.Offset, setting.DurationPerSlot, bookedTimeSlots)
 		availableNumber := setting.NumberPerSlot
 		if numberOfBooked >= timeSlot.AvailableSlotsNumber {
@@ -340,7 +341,7 @@ func (c *Controller) GetDoctorTimeSlotsPerDay(setting doctor.ScheduleSettings, t
 	return timeSlots
 }
 
-func getBookNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctor.TimeSlot) int {
+func getBookNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []doctorModel.TimeSlot) int {
 	bookedNumber := 0
 	for _, ts := range bookedTimeSlots {
 		if ts.Offset <= currentOffset && ts.Offset > currentOffset-duration {
@@ -352,7 +353,7 @@ func getBookNumberOfTimeSlot(currentOffset int, duration int, bookedTimeSlots []
 
 func (c *Controller) SaveDoctor() {
 	type Param struct {
-		Doctor doctor.Doctor `json:"doctor"`
+		Doctor doctorModel.Doctor `json:"doctor"`
 	}
 	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
@@ -386,4 +387,21 @@ func (c *Controller) GetDoctorDetailInfo() {
 	doc.Insurances = c.DoctorService.GetInsurance(p.Npi)
 
 	response.Success(c.Ctx, response.Successful, doc)
+}
+
+func (c *Controller) DoctorLogin()  {
+	type Param struct {
+		Email string `validate:"email"`
+		Password string
+	}
+	var p Param
+	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
+		return
+	}
+	u, err := c.DoctorService.GetDoctorUser(p.Email, p.Password)
+	if err != nil {
+		response.Fail(c.Ctx, response.Error, err.Error(), nil)
+	} else {
+		response.Success(c.Ctx, response.Successful, u)
+	}
 }

@@ -148,7 +148,7 @@ func (c *Controller) CreateSubUser() {
 	}
 }
 
-func (c *Controller) UpdateUserProfile()  {
+func (c *Controller) UpdateUserProfile() {
 	var p userModel.UserProfile
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return

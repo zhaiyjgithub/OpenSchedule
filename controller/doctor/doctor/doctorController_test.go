@@ -5,7 +5,7 @@
 package doctor
 
 import (
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"OpenSchedule/service/doctorService"
 	"OpenSchedule/service/scheduleService"
 	"fmt"
@@ -21,8 +21,8 @@ var c = &Controller{
 }
 
 func TestController_GetDoctorTimeSlotsPeerDay(t *testing.T) {
-	booked := make([]doctor.TimeSlot, 0)
-	booked = append(booked, doctor.TimeSlot{
+	booked := make([]doctorModel.TimeSlot, 0)
+	booked = append(booked, doctorModel.TimeSlot{
 		AvailableSlotsNumber: 3,
 		Offset:               55,
 	})
@@ -49,7 +49,7 @@ func TestConvertClosedDateToTimeSlotsByDate(t *testing.T) {
 
 	settingList, _ := closedDateSettingsMap[testNpi]
 	scheduleSetting := c.ScheduleService.GetScheduleSettings(testNpi)
-	timeSlots := c.GetDoctorTimeSlotsPerDay(scheduleSetting, targetDate, []doctor.TimeSlot{})
+	timeSlots := c.GetDoctorTimeSlotsPerDay(scheduleSetting, targetDate, []doctorModel.TimeSlot{})
 	closeDate := c.getClosedDateByDate(settingList, targetDate)
 	filterList := c.FilterTimeSlotsByClosedDate(targetDate, timeSlots, closeDate)
 	fmt.Println(filterList)

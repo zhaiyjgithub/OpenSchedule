@@ -1,13 +1,13 @@
 /**
  * @author zhaiyuanji
- * @date 2022年03月31日 2:24 上午
+ * @date 2022年03月31日 2:25 上午
  */
-package doctor
+package doctorModel
 
 import "time"
 
-// Affiliations [...]
-type Affiliations struct {
+// Certifications [...]
+type Certifications struct {
 	ID        uint32    `gorm:"primaryKey;column:id;type:int(11) unsigned;not null" json:"-"`
 	Npi       int       `gorm:"index:index_npi;column:npi;type:int(20)" json:"-"`
 	Name      string    `gorm:"column:name;type:varchar(255)" json:"name"`
@@ -16,7 +16,6 @@ type Affiliations struct {
 	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime" json:"-"`
 }
 
-// TableName sets the insert table name for this struct type
-func (d *Affiliations) TableName() string {
-	return "affiliations"
+func (s *Certifications) TableName() string {
+	return "certifications"
 }

@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	"OpenSchedule/model/doctor"
+	"OpenSchedule/model/doctorModel"
 	"OpenSchedule/response"
 	"OpenSchedule/router"
 	"OpenSchedule/service/scheduleService"
@@ -28,7 +28,7 @@ func (c *Controller) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *Controller) SetScheduleSettings() {
-	var p doctor.ScheduleSettings
+	var p doctorModel.ScheduleSettings
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func (c *Controller) GetScheduleSettings() {
 }
 
 func (c *Controller) AddClosedDateSettings() {
-	var p doctor.ClosedDateSettings
+	var p doctorModel.ClosedDateSettings
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
@@ -97,24 +97,24 @@ func (c *Controller) GetClosedDateSettings() {
 
 func (c *Controller) AddAppointment() {
 	type Param struct {
-		DoctorID               int       `json:"doctorId" validate:"required"`
-		Npi                    int64     `json:"npi" validate:"required"`
-		AppointmentType        int       `json:"appointmentType"`
+		DoctorID               int    `json:"doctorId" validate:"required"`
+		Npi                    int64  `json:"npi" validate:"required"`
+		AppointmentType        int    `json:"appointmentType"`
 		AppointmentDate        string `json:"appointmentDate" validate:"required"`
-		AppointmentStatus      int       `json:"appointmentStatus" validate:"required"`
-		Memo                   string    `json:"memo"`
-		Offset                 int       `json:"offset"`
-		PatientID              int       `json:"patientId" validate:"required"`
-		LegalGuardianPatientID int       `json:"legalGuardianPatientId"`
-		FirstName              string    `json:"firstName" validate:"required"`
-		LastName               string    `json:"lastName" validate:"required"`
-		Dob                    string    `json:"dob" validate:"required"`
-		Gender                 string    `json:"gender"`
-		Email                  string    `json:"email" validate:"required"`
-		Phone                  string    `json:"phone" validate:"required"`
-		Insurance              int       `json:"insurance"`
-		VisitReason            string    `json:"visitReason"`
-		IsNewPatient           bool      `json:"isNewPatient"`
+		AppointmentStatus      int    `json:"appointmentStatus" validate:"required"`
+		Memo                   string `json:"memo"`
+		Offset                 int    `json:"offset"`
+		PatientID              int    `json:"patientId" validate:"required"`
+		LegalGuardianPatientID int    `json:"legalGuardianPatientId"`
+		FirstName              string `json:"firstName" validate:"required"`
+		LastName               string `json:"lastName" validate:"required"`
+		Dob                    string `json:"dob" validate:"required"`
+		Gender                 string `json:"gender"`
+		Email                  string `json:"email" validate:"required"`
+		Phone                  string `json:"phone" validate:"required"`
+		Insurance              int    `json:"insurance"`
+		VisitReason            string `json:"visitReason"`
+		IsNewPatient           bool   `json:"isNewPatient"`
 	}
 	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
@@ -125,7 +125,7 @@ func (c *Controller) AddAppointment() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	appt := doctor.Appointment{
+	appt := doctorModel.Appointment{
 		DoctorID:               p.DoctorID,
 		Npi:                    p.Npi,
 		AppointmentType:        p.AppointmentType,
@@ -144,8 +144,8 @@ func (c *Controller) AddAppointment() {
 		Insurance:              p.Insurance,
 		VisitReason:            p.VisitReason,
 		IsNewPatient:           p.IsNewPatient,
-		CreatedDate: createdAt,
-		UpdatedAt: createdAt,
+		CreatedDate:            createdAt,
+		UpdatedAt:              createdAt,
 	}
 	err = c.ScheduleService.AddAppointment(appt)
 	if err != nil {
@@ -158,14 +158,14 @@ func (c *Controller) AddAppointment() {
 func (c *Controller) GetAppointmentByPage() {
 	type Param struct {
 		PatientID int `validate:"gt=1"`
-		Page int `validate:"gte=1"`
-		PageSize int `validate:"gte=5"`
+		Page      int `validate:"gte=1"`
+		PageSize  int `validate:"gte=5"`
 	}
 	var p Param
 	if err := utils.ValidateParam(c.Ctx, &p); err != nil {
 		return
 	}
-	appts, err := c.ScheduleService.GetAppointment(p.PatientID, p.Page, p.PageSize)
+	appts, err := c.ScheduleService.GetAppointmentInfo(p.PatientID, p.Page, p.PageSize)
 	if err != nil {
 		response.Fail(c.Ctx, response.Error, err.Error(), nil)
 	} else {

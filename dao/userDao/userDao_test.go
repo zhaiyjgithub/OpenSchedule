@@ -48,7 +48,7 @@ func TestDao_UpdateUserProfile(t *testing.T) {
 	state := "New York"
 	u := userModel.UserProfile{
 		UserID: 2,
-		State: &state,
+		State:  &state,
 	}
 	err := d.UpdateUserProfile(u)
 	if err != nil {

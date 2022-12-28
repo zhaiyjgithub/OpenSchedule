@@ -11,6 +11,7 @@ const (
 	SaveDoctor          = "/SaveDoctor"
 	GetTimeSlots        = "/GetTimeSlots"
 	GetDoctorDetailInfo = "/GetDoctorDetailInfo"
+	DoctorLoin = "/DoctorLogin"
 )
 
 const (
@@ -21,19 +22,19 @@ const (
 	DeleteClosedDateSettings = "/DeleteClosedDateSettings"
 	GetClosedDateSettings    = "/GetClosedDateSettings"
 	AddAppointment           = "/AddAppointment"
-	GetAppointmentByPage = "/GetAppointmentByPage"
+	GetAppointmentByPage     = "/GetAppointmentByPage"
 )
 
 const (
-	User               = AnyHealthService + "/User"
-	CreateUser         = "/CreateUser"
-	GetUserByEmail     = "/GetUserByEmail"
-	Login              = "/Login"
-	CreateSubUser      = "/CreateSubUser"
-	GetSubUsers        = "/GetSubUsers"
-	UpdateSubUserPhone = "/UpdateSubUserPhone"
-	UpdateUserProfile = "/UpdateUserProfile"
-	GetUserByID = "/GetUserByID"
-	GetUserInsurance = "/GetUserInsurance"
+	User                = AnyHealthService + "/User"
+	CreateUser          = "/CreateUser"
+	GetUserByEmail      = "/GetUserByEmail"
+	Login               = "/Login"
+	CreateSubUser       = "/CreateSubUser"
+	GetSubUsers         = "/GetSubUsers"
+	UpdateSubUserPhone  = "/UpdateSubUserPhone"
+	UpdateUserProfile   = "/UpdateUserProfile"
+	GetUserByID         = "/GetUserByID"
+	GetUserInsurance    = "/GetUserInsurance"
 	UpdateUserInsurance = "/UpdateUserInsurance"
 )

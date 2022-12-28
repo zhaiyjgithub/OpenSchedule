@@ -2,7 +2,7 @@
  * @author zhaiyuanji
  * @date 2022年02月22日 1:43 下午
  */
-package doctor
+package doctorModel
 
 import "time"
 
